@@ -9392,3 +9392,5 @@ var write = (fd) => (s) => {
   }
 };
 process.exitCode = runGuard(process.argv.slice(2), { cwd: process.cwd(), env: process.env, out: write(1), err: write(2) });
+
+// gate test 2: a PR that edits the guard must still be judged by the guard on main
