@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "protected": [
+    "**/.claude/**",
+    "**/.mcp.json",
+    ".github/**",
+    "**/AGENTS.md",
+    "**/CLAUDE.md",
+    "CONSTRAINTS.md",
+    ".agents/**",
+    "**/.agents/skills/**",
+    "skills-lock.json",
+    ".trellis/**",
+    "workflow/trellis.yaml",
+    "workflow/install-manifest.json",
+    "workflow/bin/**",
+    ".spectex/config*.json"
+  ],
+  "sensitive": [],
+  "bigDiff": {
+    "files": 20,
+    "lines": 600
+  },
+  "routeCeilings": {
+    "quick": {
+      "files": 3,
+      "lines": 80
+    },
+    "fix": {
+      "files": 10,
+      "lines": 400
+    },
+    "chore": {
+      "files": 10,
+      "lines": 300
+    },
+    "docs": {
+      "files": 15,
+      "lines": 1500
+    }
+  },
+  "labels": {
+    "spike": "spike",
+    "pause": "trellis-pause"
+  },
+  "redGreen": "on",
+  "acTrace": true
+}

@@ -1,0 +1,166 @@
+name: trellis
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited, ready_for_review, labeled, unlabeled]
+permissions:
+  contents: read
+env:
+  # Read back from the BASE copy of this file by the static job, to pin the guard it extracts from base.
+  GUARD_SHA256: 69a66c1a6e39a7cd538b4ba74591bd72a5a60707ee8b3cb8677ee97a2a13922f
+concurrency:
+  group: trellis-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  # D65. Trusted: this job (it never runs PR code) and the trellis aggregator (it reads only needs.<job>.result).
+  # redgreen and checks run PR code, so a malicious PR can make them pass: they are advisory, the human review is the gate.
+  # static decides what they run; they execute each base command in its own matrix job, the command only ever reaching a
+  # step through env:, never through ${{ }} inside run:. They use GitHub-hosted runners only.
+  static:
+    runs-on: ubuntu-latest
+    env:
+      BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      TRELLIS_PAUSE: ${{ vars.TRELLIS_PAUSE }}
+    outputs:
+      checks: ${{ steps.guard.outputs.checks }}
+      redgreen: ${{ steps.guard.outputs.redgreen }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with: { ref: "${{ github.event.pull_request.head.sha }}", fetch-depth: 0, persist-credentials: false }
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with: { node-version: "20" }
+      - id: node
+        name: node path and bootstrap, fixed before any PR code runs
+        run: |
+          set -eu
+          echo "bin=$(command -v node)" >> "$GITHUB_OUTPUT"
+          if ! git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null; then
+            echo "::error title=base_missing::the base commit is not in the checkout"
+            exit 1
+          fi
+          if ! git cat-file -e "$BASE_SHA:.github/tr-guard.cjs" 2>/dev/null; then
+            if git cat-file -e "$BASE_SHA:.github/workflows/trellis.yml" 2>/dev/null; then
+              echo "::error title=guard_missing::base has this workflow but no tr-guard"
+              exit 1
+            fi
+            echo "::warning title=guard_bootstrap::base has no trellis gate; the first install PR needs a human review"
+            echo "bootstrap=1" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.node.outputs.bootstrap != '1'
+        id: guard
+        name: guard from base, extracted, verified and run in this one step
+        env:
+          NODE_BIN: ${{ steps.node.outputs.bin }}
+        run: |
+          set -eu
+          unset NODE_OPTIONS NODE_PATH
+          G=$(mktemp -d)
+          for f in .github/tr-guard.cjs .github/tr-guard.json CONSTRAINTS.md; do git show "$BASE_SHA:$f" > "$G/$(basename "$f")"; done
+          want=$(git show "$BASE_SHA:.github/workflows/trellis.yml" | sed -n 's/^  GUARD_SHA256: *//p' | head -n 1)
+          if command -v sha256sum >/dev/null 2>&1; then got=$(sha256sum "$G/tr-guard.cjs" | cut -d' ' -f1); else got=$(shasum -a 256 "$G/tr-guard.cjs" | cut -d' ' -f1); fi
+          [ -n "$want" ] && [ "$got" = "$want" ] || { echo "::error title=guard_pin_mismatch::the guard on base is not the one its workflow pins"; exit 1; }
+          "$NODE_BIN" "$G/tr-guard.cjs" static --base "$BASE_SHA" --head "$HEAD_SHA" --event "$GITHUB_EVENT_PATH" --rules "$G/tr-guard.json" --constraints "$G/CONSTRAINTS.md"
+  # Advisory. New tests must fail on base and pass on head; one job per root with new tests.
+  redgreen:
+    needs: static
+    if: needs.static.outputs.redgreen != '' && needs.static.outputs.redgreen != '[]'
+    name: redgreen ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.static.outputs.redgreen) }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with: { ref: "${{ github.event.pull_request.head.sha }}", path: head, persist-credentials: false }
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with: { ref: "${{ github.event.pull_request.base.sha }}", path: base, persist-credentials: false }
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with: { node-version: "20" }
+      - name: copy the new tests onto base
+        env:
+          TESTS: ${{ matrix.tests }}
+          ROOT: ${{ matrix.root }}
+        run: |
+          set -eu
+          IFS='
+          '
+          set -f
+          for t in $TESTS; do mkdir -p "base/$ROOT/$(dirname "$t")"; cp "head/$ROOT/$t" "base/$ROOT/$t"; done
+      - name: red, the new tests must fail on base
+        working-directory: base/${{ matrix.root }}
+        env:
+          INSTALL: ${{ matrix.install }}
+          CMD: ${{ matrix.test_files }}
+          TESTS: ${{ matrix.tests }}
+        run: |
+          set -u
+          if [ -n "$INSTALL" ]; then sh -c "$INSTALL" || { echo "::error title=install_failed::install failed on base"; exit 1; }; fi
+          IFS='
+          '
+          set -f
+          set -- $TESTS
+          unset IFS
+          rc=0
+          sh -c "$CMD" sh "$@" || rc=$?
+          [ "$rc" -ne 0 ] || { echo "::error title=new_test_not_red::the new tests passed on base"; exit 1; }
+          { [ "$rc" -ne 126 ] && [ "$rc" -ne 127 ]; } || { echo "::error title=test_runner_missing::the test runner did not run on base (exit $rc)"; exit 1; }
+      - name: green, the same tests must pass on head
+        working-directory: head/${{ matrix.root }}
+        env:
+          INSTALL: ${{ matrix.install }}
+          CMD: ${{ matrix.test_files }}
+          TESTS: ${{ matrix.tests }}
+        run: |
+          set -u
+          if [ -n "$INSTALL" ]; then sh -c "$INSTALL" || { echo "::error title=install_failed::install failed on head"; exit 1; }; fi
+          IFS='
+          '
+          set -f
+          set -- $TESTS
+          unset IFS
+          sh -c "$CMD" sh "$@"
+  # Advisory. Install and every check of each touched root, on the head tree; one job per command.
+  checks:
+    needs: static
+    if: needs.static.outputs.checks != '' && needs.static.outputs.checks != '[]'
+    name: checks ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.static.outputs.checks) }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with: { ref: "${{ github.event.pull_request.head.sha }}", persist-credentials: false }
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with: { node-version: "20" }
+      - name: install
+        working-directory: ${{ matrix.root }}
+        env:
+          CMD: ${{ matrix.install }}
+        run: |
+          set -u
+          if [ -n "$CMD" ]; then sh -c "$CMD"; fi
+      - name: check
+        working-directory: ${{ matrix.root }}
+        env:
+          CMD: ${{ matrix.cmd }}
+        run: |
+          set -u
+          sh -c "$CMD"
+  # The required check. static must succeed; redgreen and checks must succeed or have had nothing to run. Cancelled is not a pass.
+  trellis:
+    needs: [static, redgreen, checks]
+    if: always()
+    runs-on: ubuntu-latest
+    env:
+      STATIC: ${{ needs.static.result }}
+      REDGREEN: ${{ needs.redgreen.result }}
+      CHECKS: ${{ needs.checks.result }}
+    steps:
+      - run: |
+          [ "$STATIC" = success ] || { echo "::error title=trellis::static did not succeed ($STATIC)"; exit 1; }
+          for r in "$REDGREEN" "$CHECKS"; do
+            case "$r" in success | skipped) ;; *) echo "::error title=trellis::a job did not succeed ($REDGREEN $CHECKS)"; exit 1 ;; esac
+          done

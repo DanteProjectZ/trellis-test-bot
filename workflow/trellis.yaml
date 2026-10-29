@@ -1,0 +1,16 @@
+# trellis-flow configuration (v3). Written by `trellis-flow init`; agents cannot edit it.
+schemaVersion: 2
+language: en
+target_branch: main
+layout: docs
+packs:
+  - core
+  - docs
+  - tracker
+stacks: []
+github:
+  repo: DanteProjectZ/trellis-test-bot
+  bot: null
+  gate: ruleset
+spectex:
+  enabled: true

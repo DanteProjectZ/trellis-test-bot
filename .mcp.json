@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@4.3.0"
+      ],
+      "env": {}
+    },
+    "spectex": {
+      "type": "stdio",
+      "command": "spectex",
+      "args": [
+        "mcp",
+        "--read-only"
+      ],
+      "env": {}
+    }
+  }
+}

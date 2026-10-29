@@ -1,0 +1,1165 @@
+{
+  "schemaVersion": 2,
+  "trellis_version": "1.0.0",
+  "files": [
+    {
+      "path": ".agents/skills/NOTICES.md",
+      "sha256": "f6aac2adc780132b9af70b93add7e2e310562461bda0ad0110fad755ccdeb0b6",
+      "mode": "file",
+      "owner": "core"
+    },
+    {
+      "path": ".agents/skills/api-and-interface-design/SKILL.md",
+      "sha256": "e83d34f52ff12dd8a7c5134cd7e8140ea4541ec65e204f8a1e4cd366e30c4192",
+      "mode": "file",
+      "owner": "agent-skills"
+    },
+    {
+      "path": ".agents/skills/browser-testing-with-devtools/SKILL.md",
+      "sha256": "4e3aacd6a380cd25bc6c2d67fdd1c926a9b22535b8a62109ecd33cefd909e3d9",
+      "mode": "file",
+      "owner": "agent-skills"
+    },
+    {
+      "path": ".agents/skills/constraint-driven-development/SKILL.md",
+      "sha256": "06479d4305f286d23cfb99f5dc85695896785269664e1f6a8d800e3b71e70c10",
+      "mode": "file",
+      "owner": "agent-skills"
+    },
+    {
+      "path": ".agents/skills/constraint-driven-development/references/floor-guard.md",
+      "sha256": "59715dc6c3c6c36ec9177f9ced65c379e80a4539b36115456666bfabc43a6a9c",
+      "mode": "file",
+      "owner": "agent-skills"
+    },
+    {
+      "path": ".agents/skills/deprecation-and-migration/SKILL.md",
+      "sha256": "6a624f942e09c69863a4219b9bd5d56975026b67b0c70bc83385ffd2120b6142",
+      "mode": "file",
+      "owner": "agent-skills"
+    },
+    {
+      "path": ".agents/skills/documentation-and-adrs/SKILL.md",
+      "sha256": "b60d503925bbaacee7fd63935db70b9ced5b2514ff5a56a672130e01b9690bc5",
+      "mode": "file",
+      "owner": "agent-skills"
+    },
+    {
+      "path": ".agents/skills/observability-and-instrumentation/SKILL.md",
+      "sha256": "e7fcb0820306d46268de9594d676ad98e35040858926c412b7000faa52a61f87",
+      "mode": "file",
+      "owner": "agent-skills"
+    },
+    {
+      "path": ".agents/skills/performance-optimization/SKILL.md",
+      "sha256": "bd36a30e55a5f84329a6977eba5e1ab7654146e71eaba88e34337d4ee020460f",
+      "mode": "file",
+      "owner": "agent-skills"
+    },
+    {
+      "path": ".agents/skills/performance-optimization/references/optimization-patterns.md",
+      "sha256": "fbf724076ffb8ac1a28e1a2773c0b550f5361090024b2dd32e5a682c69b7945f",
+      "mode": "file",
+      "owner": "agent-skills"
+    },
+    {
+      "path": ".agents/skills/source-driven-development/SKILL.md",
+      "sha256": "c59faf851377f0eeda45306398d16eb96d77ab1c2fd3e1a7fb58e9a0af33c1e9",
+      "mode": "file",
+      "owner": "agent-skills"
+    },
+    {
+      "path": ".agents/skills/tr-infra/SKILL.md",
+      "sha256": "a992a00403f344077b9068b94c9b3ab56f5c541f23b59cea055d4781e33520cb",
+      "mode": "file",
+      "owner": "core"
+    },
+    {
+      "path": ".agents/skills/tr-route-chore/SKILL.md",
+      "sha256": "c2fa7ddd20e853e8d6bfea2fb3a9f2c342ac026357336da6189f8177ec8ebe54",
+      "mode": "file",
+      "owner": "core"
+    },
+    {
+      "path": ".agents/skills/tr-route-docs/SKILL.md",
+      "sha256": "44b22c669907012936e25638cf52f23611f814b8a9ae187276ebc8ee2249b905",
+      "mode": "file",
+      "owner": "core"
+    },
+    {
+      "path": ".agents/skills/tr-route-feature/SKILL.md",
+      "sha256": "93c3b6501ae1de434bad93f0921fc88e16a3a542f4fe66d25439084f4e70262f",
+      "mode": "file",
+      "owner": "core"
+    },
+    {
+      "path": ".agents/skills/tr-route-fix/SKILL.md",
+      "sha256": "e0d62a066f5793338214ff3361125fb85c7f53e6c945102ce6a00297fc9735d1",
+      "mode": "file",
+      "owner": "core"
+    },
+    {
+      "path": ".agents/skills/tr-route-investigate/SKILL.md",
+      "sha256": "39989d3a4e9d5e4526ee3cda398adf407bf0acbd6acc44855354703099139388",
+      "mode": "file",
+      "owner": "core"
+    },
+    {
+      "path": ".agents/skills/tr-route-quick/SKILL.md",
+      "sha256": "88964b6a5c7a07e2a495b8ab715c1f906e173e023ab357827998880c17604285",
+      "mode": "file",
+      "owner": "core"
+    },
+    {
+      "path": ".agents/skills/tr-route-refactor/SKILL.md",
+      "sha256": "42931f619c4b5d4bf3379ffc02edd390c758bed6488951613d98287fcb15de15",
+      "mode": "file",
+      "owner": "core"
+    },
+    {
+      "path": ".agents/skills/tr-route-spike/SKILL.md",
+      "sha256": "6047cb3b05c27bfa32304c9666aa5893e3861d5e054c8634030dcc33e1bf41e2",
+      "mode": "file",
+      "owner": "core"
+    },
+    {
+      "path": ".agents/skills/tr-route-switch/SKILL.md",
+      "sha256": "124cee022129cc25c3522e5aff190a27c30ee9f3147690480c1950350aa51c26",
+      "mode": "file",
+      "owner": "core"
+    },
+    {
+      "path": ".agents/skills/tr-spectex/SKILL.md",
+      "sha256": "09d1d5e268b038e096638ce9602dfaec344283dd1583832fa1108200fefbb8b9",
+      "mode": "file",
+      "owner": "core"
+    },
+    {
+      "path": ".claude/agents/tr-correctness.md",
+      "sha256": "df6bc6d272675e62d8dab40c8bbee2235d67c9f031c2fb24cc9e68a02116dc7d",
+      "mode": "file",
+      "owner": "core"
+    },
+    {
+      "path": ".claude/agents/tr-goldfish.md",
+      "sha256": "450016ca48354cd42b4e2d4a63a8729e5a41b7e47ad836a195c8214bed3a8ccf",
+      "mode": "file",
+      "owner": "core"
+    },
+    {
+      "path": ".claude/agents/tr-skeptic.md",
+      "sha256": "caf54d0d1a2145ec76715b4b43d5dff5ff74c58e7f1c38005eec0b2683918b00",
+      "mode": "file",
+      "owner": "core"
+    },
+    {
+      "path": ".claude/commands/tr/onboard.md",
+      "sha256": "c628d6cd082f19b52d11cebf09a04cedd548207a2fc0c4c3ba08ce8c8e62df24",
+      "mode": "file",
+      "owner": "core"
+    },
+    {
+      "path": ".claude/commands/tr/start.md",
+      "sha256": "80d776e1bc4a3a8698fd86d15c7f98faf7dc0c37aeac476d4d626b4d08b96f65",
+      "mode": "file",
+      "owner": "core"
+    },
+    {
+      "path": ".claude/hooks/trellis-hook.cjs",
+      "sha256": "f90d788e832845d026cddf6bade4ecd63408af7614ca883a95f8b31273c266b1",
+      "mode": "file",
+      "owner": "core"
+    },
+    {
+      "path": ".claude/workflows/tr-ship.js",
+      "sha256": "94e3c17440cf05027f55164bce52c0b3d2327d43ece9660d9f67cbd051b86aa9",
+      "mode": "file",
+      "owner": "core"
+    },
+    {
+      "path": ".github/CODEOWNERS",
+      "sha256": "34d399a460cfcce9a8731d3b857d87b217d4ecab97300a582dc1d1f9bdbf47e5",
+      "mode": "create",
+      "owner": "core"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/feature.md",
+      "sha256": "8f6c365c8731e2a12b0d57d563260b94f8c6b0165cf73cad2b21e42c67fee718",
+      "mode": "create",
+      "owner": "tracker"
+    },
+    {
+      "path": ".github/tr-guard.cjs",
+      "sha256": "69a66c1a6e39a7cd538b4ba74591bd72a5a60707ee8b3cb8677ee97a2a13922f",
+      "mode": "file",
+      "owner": "core"
+    },
+    {
+      "path": ".github/tr-guard.json",
+      "sha256": "f489626aa925a20b25f33b99fc87bff6e8d68f7a4e95950656e730d76fbc122d",
+      "mode": "file",
+      "owner": "core"
+    },
+    {
+      "path": ".github/workflows/trellis.yml",
+      "sha256": "fada80bd4b759458d1cba13e2d22efa39e3a6298bc6a842fd9639af3ed16a7ed",
+      "mode": "file",
+      "owner": "core"
+    },
+    {
+      "path": "CONSTRAINTS.md",
+      "sha256": "28c308d76e02ec37458271d4a941e8d8e4c001fa59744ac8fcb852fee71f4df2",
+      "mode": "create",
+      "owner": "core"
+    },
+    {
+      "path": "docs/templates/ADR.md",
+      "sha256": "fd4bab3667e0fe02875085164ac83db029d926e973fee8a0300cfa9485fd5626",
+      "mode": "create",
+      "owner": "docs"
+    },
+    {
+      "path": "docs/templates/PRD.md",
+      "sha256": "e502336593da46ae33de806bb1d49162d5106bbc887c9c3255ed2638e3571d4a",
+      "mode": "create",
+      "owner": "docs"
+    },
+    {
+      "path": "skills-lock.json",
+      "sha256": "a89b2e9948cb8f68ce557aa07fe44c612749daf5f9b46ecc979c376476ee3b4a",
+      "mode": "file",
+      "owner": "core"
+    }
+  ],
+  "blocks": [
+    {
+      "path": "AGENTS.md",
+      "marker": "trellis-agents"
+    },
+    {
+      "path": "CLAUDE.md",
+      "marker": "trellis-claude"
+    }
+  ],
+  "outside": [],
+  "vendor": [
+    {
+      "name": "agent-skills",
+      "commit": "aeac41d4d005999432bb7312f7ff06383a91d59d",
+      "sha256": "f32406391c1b66c134cc4641a3a275a08385c3a64e8b3f11b9d7186650d494ab",
+      "license": "MIT"
+    }
+  ],
+  "settings_added": {
+    "project": [
+      [
+        "crossSessionInbound"
+      ],
+      [
+        "env",
+        "CLAUDE_CODE_GOAL_CHECKIN_MINUTES"
+      ],
+      [
+        "enabledPlugins",
+        "superpowers@superpowers-dev"
+      ],
+      [
+        "enabledPlugins",
+        "superpowers@claude-plugins-official"
+      ],
+      [
+        "extraKnownMarketplaces",
+        "superpowers-dev",
+        "source",
+        "source"
+      ],
+      [
+        "extraKnownMarketplaces",
+        "superpowers-dev",
+        "source",
+        "repo"
+      ],
+      [
+        "extraKnownMarketplaces",
+        "superpowers-dev",
+        "source",
+        "ref"
+      ],
+      [
+        "extraKnownMarketplaces",
+        "superpowers-dev",
+        "autoUpdate"
+      ],
+      [
+        "sandbox",
+        "enabled"
+      ],
+      [
+        "sandbox",
+        "allowUnsandboxedCommands"
+      ],
+      [
+        "sandbox",
+        "autoAllowBashIfSandboxed"
+      ],
+      [
+        "sandbox",
+        "credentials",
+        "envVars",
+        "{\"name\":\"GH_TOKEN\",\"mode\":\"deny\"}"
+      ],
+      [
+        "sandbox",
+        "credentials",
+        "envVars",
+        "{\"name\":\"GITHUB_TOKEN\",\"mode\":\"deny\"}"
+      ],
+      [
+        "sandbox",
+        "credentials",
+        "envVars",
+        "{\"name\":\"GH_ENTERPRISE_TOKEN\",\"mode\":\"deny\"}"
+      ],
+      [
+        "permissions",
+        "defaultMode"
+      ],
+      [
+        "permissions",
+        "disableBypassPermissionsMode"
+      ],
+      [
+        "permissions",
+        "blockReadsOutsideWorkingDirectories"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Read(~/.ssh/**)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Read(~/.aws/**)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Read(~/.config/gh/**)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Read(~/.git-credentials)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Read(~/.netrc)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Read(~/.npmrc)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Read(~/.docker/**)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Read(~/.kube/**)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Read(~/.config/gcloud/**)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Read(~/.gnupg/**)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Read(~/.trellis-flow/**)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Read(/**/.env*)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Edit(/.claude/**)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Edit(/.mcp.json)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Edit(/**/.git/hooks/**)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Edit(/**/.git/config)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Edit(/**/.git/info/**)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Edit(/**/.git/config.worktree)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Edit(/**/.git/refs/replace/**)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Edit(/**/.git/objects/info/alternates)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Edit(/skills-lock.json)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Edit(/.spectex/config*.json)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Edit(/.spectex/memory.db*)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Edit(/.spectex/vectors/memories.lance/**)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Edit(/.spectex/vectors/failures.lance/**)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Edit(/.spectex/skills/**)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Edit(/.spectex/work_log.db*)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Edit(/.trellis/**)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Edit(/.trellis/catalog/**)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Edit(/workflow/trellis.yaml)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Edit(/workflow/install-manifest.json)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Edit(/workflow/bin/**)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Edit(/AGENTS.md)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Edit(/CLAUDE.md)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Edit(/.agents/skills/**)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Bash(git push:*)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Bash(git push *)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Bash(gh pr merge:*)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Bash(gh api:*)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Bash(gh auth:*)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Bash(gh repo:*)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Bash(trellis anchor *)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Bash(trellis user-settings *)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Bash(trellis decisions*)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Bash(npx trellis-flow decisions*)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Bash(npx *trellis-flow* anchor*)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Bash(npx *trellis-flow* user-settings*)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Bash(npx *trellis-flow* decisions*)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Bash(spectex save*)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Bash(spectex knowledge*)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Bash(spectex import*)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Bash(spectex plan*)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Bash(spectex * save*)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Bash(spectex --root * save*)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "mcp__claude-in-chrome"
+      ],
+      [
+        "permissions",
+        "deny",
+        "mcp__plugin_ecc_github"
+      ],
+      [
+        "permissions",
+        "deny",
+        "mcp__github"
+      ],
+      [
+        "permissions",
+        "deny",
+        "mcp__plugin_github_github"
+      ],
+      [
+        "permissions",
+        "deny",
+        "mcp__spectex__spectex_edit_symbol"
+      ],
+      [
+        "permissions",
+        "deny",
+        "mcp__spectex__spectex_rename_symbol"
+      ],
+      [
+        "permissions",
+        "deny",
+        "mcp__spectex__spectex_index"
+      ],
+      [
+        "permissions",
+        "deny",
+        "mcp__spectex__spectex_delete_memory"
+      ],
+      [
+        "permissions",
+        "deny",
+        "mcp__spectex__spectex_import_knowledge"
+      ],
+      [
+        "permissions",
+        "deny",
+        "mcp__spectex__spectex_export_knowledge"
+      ],
+      [
+        "permissions",
+        "deny",
+        "mcp__spectex__spectex_set_compass"
+      ],
+      [
+        "permissions",
+        "deny",
+        "mcp__spectex__spectex_save"
+      ],
+      [
+        "permissions",
+        "deny",
+        "mcp__spectex__spectex_save_snapshot"
+      ],
+      [
+        "permissions",
+        "deny",
+        "mcp__spectex__spectex_update_status"
+      ],
+      [
+        "permissions",
+        "deny",
+        "mcp__spectex__spectex_sync_plan"
+      ],
+      [
+        "permissions",
+        "deny",
+        "mcp__spectex__spectex_verify_qa"
+      ],
+      [
+        "permissions",
+        "deny",
+        "mcp__spectex__spectex_session"
+      ],
+      [
+        "permissions",
+        "deny",
+        "mcp__spectex__spectex_recall_chats"
+      ],
+      [
+        "permissions",
+        "deny",
+        "mcp__spectex__spectex_get_chat_md"
+      ],
+      [
+        "permissions",
+        "deny",
+        "mcp__spectex__spectex_get_collab_context"
+      ],
+      [
+        "permissions",
+        "deny",
+        "mcp__spectex__spectex_summarize_thread"
+      ],
+      [
+        "permissions",
+        "deny",
+        "mcp__spectex__spectex_symbol_knowledge"
+      ],
+      [
+        "permissions",
+        "deny",
+        "mcp__spectex__spectex_review_doc_links"
+      ],
+      [
+        "permissions",
+        "deny",
+        "mcp__spectex__spectex_detect_gaps"
+      ],
+      [
+        "permissions",
+        "deny",
+        "mcp__spectex__spectex_detect_contradictions"
+      ],
+      [
+        "permissions",
+        "deny",
+        "mcp__spectex__spectex_get_resource_usage"
+      ],
+      [
+        "permissions",
+        "ask",
+        "WebFetch"
+      ],
+      [
+        "permissions",
+        "ask",
+        "Edit(/**/.claude/**)"
+      ],
+      [
+        "permissions",
+        "ask",
+        "Edit(/**/.mcp.json)"
+      ],
+      [
+        "permissions",
+        "ask",
+        "Edit(/**/.agents/skills/**)"
+      ],
+      [
+        "permissions",
+        "ask",
+        "Edit(/**/AGENTS.md)"
+      ],
+      [
+        "permissions",
+        "ask",
+        "Edit(/**/CLAUDE.md)"
+      ],
+      [
+        "permissions",
+        "ask",
+        "mcp__spectex__spectex_query_graph"
+      ],
+      [
+        "permissions",
+        "ask",
+        "mcp__spectex__spectex_get_skill"
+      ],
+      [
+        "permissions",
+        "ask",
+        "mcp__spectex__spectex_list_skills"
+      ],
+      [
+        "permissions",
+        "allow",
+        "WebFetch(domain:developer.mozilla.org)"
+      ],
+      [
+        "permissions",
+        "allow",
+        "WebFetch(domain:nodejs.org)"
+      ],
+      [
+        "permissions",
+        "allow",
+        "WebFetch(domain:docs.python.org)"
+      ],
+      [
+        "permissions",
+        "allow",
+        "WebFetch(domain:go.dev)"
+      ],
+      [
+        "permissions",
+        "allow",
+        "WebFetch(domain:pkg.go.dev)"
+      ],
+      [
+        "permissions",
+        "allow",
+        "WebFetch(domain:doc.rust-lang.org)"
+      ],
+      [
+        "permissions",
+        "allow",
+        "WebFetch(domain:docs.flutter.dev)"
+      ],
+      [
+        "permissions",
+        "allow",
+        "WebFetch(domain:api.flutter.dev)"
+      ],
+      [
+        "permissions",
+        "allow",
+        "WebFetch(domain:learn.microsoft.com)"
+      ],
+      [
+        "permissions",
+        "allow",
+        "WebFetch(domain:docs.github.com)"
+      ],
+      [
+        "permissions",
+        "allow",
+        "WebFetch(domain:code.claude.com)"
+      ],
+      [
+        "permissions",
+        "allow",
+        "Skill(tr-ship)"
+      ],
+      [
+        "permissions",
+        "allow",
+        "Workflow(tr-ship)"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__context7__resolve-library-id"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__context7__query-docs"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_check_staleness"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_explain_symbol"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_get_360_context"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_get_api_contracts"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_get_blast_radius"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_get_changelog"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_get_clusters"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_get_code_health"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_get_compass"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_get_contract_bridge"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_get_cross_source_contracts"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_get_cross_source_links"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_get_db_schema"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_get_doc_code_links"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_get_doc_section"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_get_doc_staleness"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_get_entity_map"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_get_entry_points"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_get_git_context"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_get_issue"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_get_memory"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_get_plan_progress"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_get_pr_analysis"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_get_route_page"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_get_schema_impact"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_get_shared_types"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_get_snapshot"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_get_sources"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_get_symbol_docs"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_get_test_coverage"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_help"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_list_failures"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_list_open_questions"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_list_plans"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_recall_doc_tree"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_recall_project_history"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_search_docs"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_search_memory"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_search_symbols"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_select_relevant_files"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_shape_check"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_trace_cross_source"
+      ],
+      [
+        "permissions",
+        "allow",
+        "mcp__spectex__spectex_trace_symbol"
+      ]
+    ],
+    "local": [],
+    "user": [
+      [
+        "hooks",
+        "PreToolUse",
+        "{\"matcher\":\"*\",\"hooks\":[{\"type\":\"command\",\"command\":\"/Users/danhtrinh/.local/share/fnm/node-versions/v24.18.0/installation/bin/node /Users/danhtrinh/.trellis-flow/bin/trellis-hook.cjs PreToolUse\",\"timeout\":5,\"onFailure\":\"block\"}]}"
+      ],
+      [
+        "sandbox",
+        "excludedCommands",
+        "/Users/danhtrinh/.trellis-flow/bin/tr-push"
+      ],
+      [
+        "sandbox",
+        "excludedCommands",
+        "/Users/danhtrinh/.trellis-flow/bin/tr-pr"
+      ],
+      [
+        "sandbox",
+        "excludedCommands",
+        "/Users/danhtrinh/.trellis-flow/bin/tr-pr --draft"
+      ],
+      [
+        "permissions",
+        "ask",
+        "Bash(/Users/danhtrinh/.trellis-flow/bin/tr-push)"
+      ],
+      [
+        "permissions",
+        "ask",
+        "Bash(/Users/danhtrinh/.trellis-flow/bin/tr-pr)"
+      ],
+      [
+        "permissions",
+        "ask",
+        "Bash(/Users/danhtrinh/.trellis-flow/bin/tr-pr --draft)"
+      ]
+    ],
+    "mcp": [
+      [
+        "mcpServers",
+        "context7",
+        "type"
+      ],
+      [
+        "mcpServers",
+        "context7",
+        "command"
+      ],
+      [
+        "mcpServers",
+        "context7",
+        "args",
+        "-y"
+      ],
+      [
+        "mcpServers",
+        "context7",
+        "args",
+        "@upstash/context7-mcp@4.3.0"
+      ],
+      [
+        "mcpServers",
+        "spectex",
+        "type"
+      ],
+      [
+        "mcpServers",
+        "spectex",
+        "command"
+      ],
+      [
+        "mcpServers",
+        "spectex",
+        "args",
+        "mcp"
+      ],
+      [
+        "mcpServers",
+        "spectex",
+        "args",
+        "--read-only"
+      ]
+    ]
+  },
+  "packs": [
+    "core",
+    "docs",
+    "tracker"
+  ],
+  "stacks": [],
+  "migrations_applied": [
+    "v3"
+  ]
+}
