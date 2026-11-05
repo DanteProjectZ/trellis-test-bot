@@ -13,20 +13,47 @@ function isClosingFence(line, fence) {
   return match !== null && match[1][0] === fence[0] && match[1].length >= fence.length;
 }
 
+function skipFrontMatter(lines) {
+  if (lines[0] !== '---') return lines;
+  const close = lines.findIndex((line, i) => i > 0 && (line === '---' || line === '...'));
+  return close === -1 ? lines : lines.slice(close + 1);
+}
+
+function isBlank(line) {
+  return /^[ \t]*$/.test(line);
+}
+
+function isIndentedCode(line) {
+  return /^( {4}|\t)/.test(line);
+}
+
+// Classifies each line as prose or code. A block boundary is the first body
+// line, the line after a blank line, after a closing fence, or after an
+// indented code line; only there can an indented code block start.
 function proseLines(lines) {
   const kept = [];
   let fence = null;
+  let atBoundary = true;
   for (const line of lines) {
     if (fence !== null) {
-      if (isClosingFence(line, fence)) fence = null;
+      if (isClosingFence(line, fence)) {
+        fence = null;
+        atBoundary = true;
+      }
       continue;
     }
+    if (isBlank(line)) {
+      atBoundary = true;
+      continue;
+    }
+    if (atBoundary && isIndentedCode(line)) continue;
     const open = FENCE_OPEN.exec(line);
     if (open !== null) {
       fence = open[1];
       continue;
     }
     kept.push(line);
+    atBoundary = false;
   }
   return kept;
 }
@@ -36,7 +63,7 @@ function stripInline(prose) {
 }
 
 export function countWords(markdown) {
-  const lines = prepare(markdown).split('\n');
+  const lines = skipFrontMatter(prepare(markdown).split('\n'));
   const prose = stripInline(proseLines(lines).join('\n'));
   return prose.split(/\s+/).filter((token) => WORD_CHAR.test(token)).length;
 }
