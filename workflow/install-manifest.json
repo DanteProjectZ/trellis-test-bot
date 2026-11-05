@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "trellis_version": "1.4.4",
+  "trellis_version": "1.4.5",
   "files": [
     {
       "path": ".agents/skills/NOTICES.md",
@@ -256,13 +256,13 @@
     },
     {
       "path": ".claude/hooks/trellis-hook.cjs",
-      "sha256": "b55e4a5d3dd1a84fde1dc60fe1c1e6c6c466aedd75f1c604d27f832a5e25598c",
+      "sha256": "0a9014959297a42a962106b0dbef88118ebf380eb6783d46a12eee1d6e5cc0e5",
       "mode": "file",
       "owner": "core"
     },
     {
       "path": ".claude/rules/tr-acceptance.md",
-      "sha256": "5b2f174d175c68298c736a6241fbed05f2776730f393d0bc24ff3d96cb488307",
+      "sha256": "4e77df401928c9e5a8a4a94c48e25f83666d43d830544d56a32c604cb427a83a",
       "mode": "file",
       "owner": "acceptance"
     },
@@ -348,7 +348,7 @@
     },
     {
       "path": "~/.trellis-flow/bin/tr-packs",
-      "sha256": "4b79caa874eec34741ffee586424b38c7e353ce4610a9fa308dc74d6fe514044"
+      "sha256": "52859767be4f7be9a67c9489f15a3fdb9dd6a0326f0a41ebcbbc4ed35e5a79e0"
     },
     {
       "path": "~/.trellis-flow/bin/tr-pr",
@@ -364,7 +364,7 @@
     },
     {
       "path": "~/.trellis-flow/bin/trellis-hook.cjs",
-      "sha256": "b55e4a5d3dd1a84fde1dc60fe1c1e6c6c466aedd75f1c604d27f832a5e25598c"
+      "sha256": "0a9014959297a42a962106b0dbef88118ebf380eb6783d46a12eee1d6e5cc0e5"
     },
     {
       "path": "~/.trellis-flow/bot/bd33f496c9b2/git-credential-helper",
@@ -1549,6 +1549,14 @@
         "permissions",
         "ask",
         "Bash(/Users/danhtrinh/.trellis-flow/bin/tr-sync)"
+      ],
+      [
+        "enabledPlugins",
+        "superpowers@claude-plugins-official"
+      ],
+      [
+        "enabledPlugins",
+        "superpowers@superpowers-dev"
       ]
     ],
     "user": [],
