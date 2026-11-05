@@ -2,7 +2,7 @@
 "use strict";
 
 // src/hook/bin.ts
-var import_node_fs12 = require("node:fs");
+var import_node_fs13 = require("node:fs");
 
 // src/hook/main.ts
 var import_node_os3 = require("node:os");
@@ -10,8 +10,8 @@ var import_node_path11 = require("node:path");
 
 // src/hook/anchor.ts
 var import_node_crypto = require("node:crypto");
-var import_node_fs3 = require("node:fs");
-var import_node_path4 = require("node:path");
+var import_node_fs2 = require("node:fs");
+var import_node_path3 = require("node:path");
 
 // src/hook/gitlite.ts
 var import_node_child_process = require("node:child_process");
@@ -57,111 +57,25 @@ function gitText(cwd, args) {
   return r.status === 0 ? r.stdout.toString("utf8").trim() : null;
 }
 
-// src/core/fold.ts
-var IGNORABLE = new RegExp("\\p{Default_Ignorable_Code_Point}", "gu");
-var strip = (s) => s.replace(IGNORABLE, "");
-var foldPath = (path) => strip(strip(path).normalize("NFKC")).toUpperCase().toLowerCase().replaceAll("ß", "ss");
-var FoldedRegExp = class extends RegExp {
-  test(path) {
-    return super.test(foldPath(path));
-  }
-};
-
-// src/hook/localproj.ts
-var isSettingsLocal = (rel) => /(^|\/)\.claude\/settings\.local\.json$/.test(foldPath(rel));
-var isRecord = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
-var NO_CONTEXT = { sandboxedBash: false, excluded: [], servers: /* @__PURE__ */ new Set(), skills: /* @__PURE__ */ new Set() };
-var strings = (v) => Array.isArray(v) ? v.filter((x) => typeof x === "string") : [];
-var firstWord = (c) => c.trim().split(/\s+/)[0] ?? "";
-var baseName = (p) => p.slice(p.lastIndexOf("/") + 1);
-function bashReachesOutside(inner, excluded) {
-  const t = inner.replace(/(:\*|\*)$/, "").trim();
-  if (t === "" || t === "*") return true;
-  if (/\.trellis-flow|tr-push|tr-pr/.test(t)) return true;
-  return excluded.some((e) => e.includes(t) || t.includes(baseName(firstWord(e))) || t.includes(firstWord(e)));
-}
-function isNarrowAllow(entry, ctx) {
-  if (typeof entry !== "string") return false;
-  const mcp = /^mcp__([A-Za-z0-9-]+(?:_[A-Za-z0-9-]+)*)__([\w-]+)$/.exec(entry);
-  if (mcp !== null) return ctx.servers.has(mcp[1]);
-  const m = /^(Skill|Bash)\(([^)]*)\)$/.exec(entry);
-  if (m === null) return false;
-  const arg = m[2];
-  switch (m[1]) {
-    case "Bash":
-      return ctx.sandboxedBash && !bashReachesOutside(arg, ctx.excluded);
-    default:
-      return ctx.skills.has(arg);
-  }
-}
-function projectSettings(text, base = NO_CONTEXT) {
-  let doc;
-  try {
-    doc = JSON.parse(text);
-  } catch {
-    return null;
-  }
-  if (!isRecord(doc)) return null;
-  const { enabledMcpjsonServers: enabled, disabledMcpjsonServers: _d, permissions, ...rest } = doc;
-  const own = isRecord(doc.sandbox) ? doc.sandbox : {};
-  const ctx = { ...base, sandboxedBash: base.sandboxedBash && own.allowUnsandboxedCommands !== true && own.enabled !== false, excluded: [...base.excluded, ...strings(own.excludedCommands)] };
-  const out = { ...rest };
-  if (enabled !== void 0) {
-    const unknown = Array.isArray(enabled) ? enabled.filter((n) => typeof n !== "string" || !ctx.servers.has(n)) : enabled;
-    if (!Array.isArray(unknown) || unknown.length > 0) out.enabledMcpjsonServers = unknown;
-  }
-  if (permissions !== void 0) {
-    if (!isRecord(permissions)) out.permissions = permissions;
-    else {
-      const { allow, ...others } = permissions;
-      const kept = Array.isArray(allow) ? allow.filter((a) => !isNarrowAllow(a, ctx)) : allow;
-      const perms = { ...others, ...kept === void 0 || Array.isArray(kept) && kept.length === 0 ? {} : { allow: Array.isArray(kept) ? [...kept].sort() : kept } };
-      if (Object.keys(perms).length > 0) out.permissions = perms;
-    }
-  }
-  return canonical(out);
-}
-function settingsContext(project, mcpJson, skills) {
-  const sandbox = isRecord(project) && isRecord(project.sandbox) ? project.sandbox : {};
-  const servers = isRecord(mcpJson) && isRecord(mcpJson.mcpServers) ? Object.keys(mcpJson.mcpServers) : [];
-  return { sandboxedBash: sandbox.enabled === true && sandbox.allowUnsandboxedCommands === false, excluded: strings(sandbox.excludedCommands), servers: new Set(servers), skills: new Set(skills) };
-}
-function canonical(v) {
-  if (Array.isArray(v)) return `[${v.map(canonical).join(",")}]`;
-  if (isRecord(v)) return `{${Object.keys(v).sort().map((k) => `${JSON.stringify(k)}:${canonical(v[k])}`).join(",")}}`;
-  return JSON.stringify(v) ?? "null";
-}
-
-// src/hook/rules.ts
+// src/hook/repo.ts
 var import_node_fs = require("node:fs");
 var import_node_path2 = require("node:path");
-var PROTECTED = new FoldedRegExp(
-  "^(([^]*/)?\\.claude(/|$)|([^]*/)?\\.mcp\\.json$|([^]*/)?claude\\.md$|([^]*/)?agents\\.md$|([^]*/)?\\.agents/skills(/|$)|\\.spectex/(config[^/]*\\.json$|memory\\.db|work_log\\.db|vectors/(memories|failures)\\.lance(/|$)|skills(/|$))|skills-lock\\.json$|\\.trellis(/|$)|workflow/(trellis\\.yaml|install-manifest\\.json)$|workflow/bin(/|$))",
-  "s"
-);
-var CLAUDE_RULES = /* @__PURE__ */ new Set(["settings.json", "claude.md", "commands", "agents", "skills", "hooks", "rules", "output-styles", "workflows"]);
-var EDITOR_JUNK = /^(\.DS_Store|.*\.sw[po]|.*~)$/;
-var RULE_NAMES = /* @__PURE__ */ new Set(["claude.md", "agents.md", ".claude", ".mcp.json", ".agents", ".trellis", "skills-lock.json"]);
-var EXACT_RULE_NAMES = /* @__PURE__ */ new Set(["CLAUDE.md", "AGENTS.md", ".claude", ".mcp.json", ".agents", ".trellis", "skills-lock.json"]);
-var NAMES_ONLY_DIRS = /* @__PURE__ */ new Set(["node_modules", "dist", "build", "out", "target", ".next", ".nuxt", ".turbo", ".cache", ".gradle", ".venv", "venv", "__pycache__", "Pods", "coverage"]);
-var NAMES_ENTRIES = 2e6;
-var WALK_ENTRIES = 2e5;
-var SAFE_LINK = /^[A-Za-z0-9._/@+-]{1,120}$/;
-var isLocalJson = (rel) => {
-  const parts = foldPath(rel).split("/");
-  if (parts.length === 2 && parts[0] === ".spectex") return /^config[^/]*\.json$/.test(parts[1]);
-  const at = parts.lastIndexOf(".claude");
-  return at >= 0 && parts.length === at + 2 && parts[at + 1].endsWith(".local.json");
-};
-function isMachineOwn(rel, st) {
-  if (isLocalJson(rel)) return false;
-  if (/^\.spectex\/(memory|work_log|vectors|skills)/.test(foldPath(rel))) return true;
-  if (st.isFile() && EDITOR_JUNK.test(rel.slice(rel.lastIndexOf("/") + 1))) return true;
-  const parts = foldPath(rel).split("/");
-  const at = parts.indexOf(".claude");
-  const next = at >= 0 ? parts[at + 1] : void 0;
-  return next !== void 0 && !CLAUDE_RULES.has(next);
+function enclosingTrees(start) {
+  const trees = [];
+  for (let d = (0, import_node_path2.resolve)(start); ; d = (0, import_node_path2.dirname)(d)) {
+    if ((0, import_node_fs.existsSync)((0, import_node_path2.join)(d, ".git"))) trees.push(d);
+    if ((0, import_node_path2.dirname)(d) === d) return trees;
+  }
 }
+function workDirs(payload) {
+  const given = typeof payload === "object" && payload !== null ? payload.cwd : void 0;
+  const dirs = [process.cwd()];
+  const project = process.env.CLAUDE_PROJECT_DIR;
+  if (typeof project === "string" && (0, import_node_path2.isAbsolute)(project)) dirs.push(project);
+  if (typeof given === "string" && (0, import_node_path2.isAbsolute)(given)) dirs.unshift(given);
+  return [...new Set(dirs)];
+}
+var AGENTS_MARKER = "trellis:begin trellis-agents";
 var lstatOrNull = (path) => {
   try {
     return (0, import_node_fs.lstatSync)(path);
@@ -169,90 +83,10 @@ var lstatOrNull = (path) => {
     return null;
   }
 };
-function protectedOnDisk(top, onGitEntry) {
-  const topReal = (0, import_node_fs.realpathSync)(top);
-  const found = /* @__PURE__ */ new Map();
-  let budget = WALK_ENTRIES;
-  let nameBudget = NAMES_ENTRIES;
-  const followLink = (path, chain) => {
-    let target;
-    try {
-      target = (0, import_node_fs.realpathSync)((0, import_node_path2.join)(top, path));
-      if (!(0, import_node_fs.statSync)(target).isDirectory()) return;
-    } catch {
-      return;
-    }
-    if (target !== topReal && !target.startsWith(`${topReal}/`)) {
-      throw new HookFault(`outside_dir_link ${SAFE_LINK.test(path) ? path : "<unprintable name>"}`);
-    }
-    if (chain.has(target)) return;
-    walk(path, (0, import_node_path2.relative)(topReal, target), /* @__PURE__ */ new Set([...chain, target]));
-  };
-  const namesOnly = (start) => {
-    const stack = [start];
-    for (let dir = stack.pop(); dir !== void 0; dir = stack.pop()) {
-      for (const e of (0, import_node_fs.readdirSync)((0, import_node_path2.join)(top, dir), { withFileTypes: true })) {
-        if (--nameBudget < 0) throw new HookFault("names_walk_too_big");
-        const path = `${dir}/${e.name}`;
-        const name = foldPath(e.name);
-        if (name === ".git") onGitEntry?.(path);
-        else if (RULE_NAMES.has(name) && !EXACT_RULE_NAMES.has(e.name)) throw new HookFault(`rule_in_skipped_tree ${SAFE_LINK.test(path) ? path : "<unprintable name>"}`);
-        else if (e.isDirectory()) stack.push(path);
-      }
-    }
-  };
-  const walk = (rel, realRel, chain) => {
-    for (const d of (0, import_node_fs.readdirSync)((0, import_node_path2.join)(top, rel), { withFileTypes: true })) {
-      if (--budget < 0) throw new HookFault("link_walk_too_big");
-      const path = rel === "" ? d.name : `${rel}/${d.name}`;
-      const real = realRel === "" ? d.name : `${realRel}/${d.name}`;
-      if (rel !== "" && foldPath(d.name) === ".git") onGitEntry?.(path);
-      if (d.isDirectory()) {
-        if (d.name === ".git" || foldPath(d.name) === ".git") continue;
-        if (NAMES_ONLY_DIRS.has(d.name)) namesOnly(path);
-        else walk(path, real, chain);
-        continue;
-      }
-      if (d.isSymbolicLink()) followLink(path, chain);
-      if (!PROTECTED.test(path)) continue;
-      const st = lstatOrNull((0, import_node_path2.join)(top, path));
-      if (st !== null && !st.isDirectory()) found.set(path, { st, real });
-    }
-  };
-  walk("", "", /* @__PURE__ */ new Set([topReal]));
-  return found;
-}
-
-// src/hook/repo.ts
-var import_node_fs2 = require("node:fs");
-var import_node_path3 = require("node:path");
-function enclosingTrees(start) {
-  const trees = [];
-  for (let d = (0, import_node_path3.resolve)(start); ; d = (0, import_node_path3.dirname)(d)) {
-    if ((0, import_node_fs2.existsSync)((0, import_node_path3.join)(d, ".git"))) trees.push(d);
-    if ((0, import_node_path3.dirname)(d) === d) return trees;
-  }
-}
-function workDirs(payload) {
-  const given = typeof payload === "object" && payload !== null ? payload.cwd : void 0;
-  const dirs = [process.cwd()];
-  const project = process.env.CLAUDE_PROJECT_DIR;
-  if (typeof project === "string" && (0, import_node_path3.isAbsolute)(project)) dirs.push(project);
-  if (typeof given === "string" && (0, import_node_path3.isAbsolute)(given)) dirs.unshift(given);
-  return [...new Set(dirs)];
-}
-var AGENTS_MARKER = "trellis:begin trellis-agents";
-var lstatOrNull2 = (path) => {
-  try {
-    return (0, import_node_fs2.lstatSync)(path);
-  } catch {
-    return null;
-  }
-};
 function hasTrellisFiles(top) {
-  if (lstatOrNull2((0, import_node_path3.join)(top, ".claude", "hooks", "trellis-hook.cjs")) !== null || lstatOrNull2((0, import_node_path3.join)(top, "workflow", "trellis.yaml")) !== null) return true;
+  if (lstatOrNull((0, import_node_path2.join)(top, ".claude", "hooks", "trellis-hook.cjs")) !== null || lstatOrNull((0, import_node_path2.join)(top, "workflow", "trellis.yaml")) !== null) return true;
   try {
-    return (0, import_node_fs2.readFileSync)((0, import_node_path3.join)(top, "AGENTS.md"), "utf8").includes(AGENTS_MARKER);
+    return (0, import_node_fs.readFileSync)((0, import_node_path2.join)(top, "AGENTS.md"), "utf8").includes(AGENTS_MARKER);
   } catch {
     return false;
   }
@@ -272,7 +106,7 @@ var hasMarkers = (top) => hasTrellisFiles(top) || headHasTrellisFiles(top);
 function installKind(top) {
   let text;
   try {
-    text = (0, import_node_fs2.readFileSync)((0, import_node_path3.join)(top, "workflow", "install-manifest.json"), "utf8");
+    text = (0, import_node_fs.readFileSync)((0, import_node_path2.join)(top, "workflow", "install-manifest.json"), "utf8");
   } catch (e) {
     if (e.code === "ENOENT") return hasMarkers(top) ? "broken" : "none";
     return "broken";
@@ -282,7 +116,7 @@ function installKind(top) {
 function versionKind(text) {
   try {
     const v = JSON.parse(text)?.schemaVersion;
-    return v === 2 ? "v3" : v === 1 ? "v1" : "broken";
+    return v === 2 ? "v3" : "broken";
   } catch {
     return "broken";
   }
@@ -290,7 +124,7 @@ function versionKind(text) {
 function targetBranch(top) {
   let text;
   try {
-    text = (0, import_node_fs2.readFileSync)((0, import_node_path3.join)(top, "workflow", "trellis.yaml"), "utf8");
+    text = (0, import_node_fs.readFileSync)((0, import_node_path2.join)(top, "workflow", "trellis.yaml"), "utf8");
   } catch {
     return null;
   }
@@ -302,97 +136,60 @@ function targetBranch(top) {
 
 // src/hook/anchor.ts
 var REPO_DIR = /^(?!\/)(?!.*(^|\/)\.\.?(\/|$))[^\0\\]{1,200}$/;
-var SHA = /^[0-9a-f]{64}$/;
-var MODES = /* @__PURE__ */ new Set(["100644", "100755", "120000"]);
 var sha256 = (bytes) => (0, import_node_crypto.createHash)("sha256").update(bytes).digest("hex");
-var anchorPath = (home, repoId) => (0, import_node_path4.join)(home, ".trellis-flow", repoId, "anchor.json");
+var anchorPath = (home, repoId) => (0, import_node_path3.join)(home, ".trellis-flow", repoId, "anchor.json");
 function repoIdOf(top) {
-  const dotGit = (0, import_node_path4.join)(top, ".git");
-  if (lstatOrNull3(dotGit)?.isDirectory() === true && lstatOrNull3((0, import_node_path4.join)(dotGit, "commondir")) === null) return sha256((0, import_node_fs3.realpathSync)(dotGit)).slice(0, 12);
+  const dotGit = (0, import_node_path3.join)(top, ".git");
+  if (lstatOrNull2(dotGit)?.isDirectory() === true && lstatOrNull2((0, import_node_path3.join)(dotGit, "commondir")) === null) return sha256((0, import_node_fs2.realpathSync)(dotGit)).slice(0, 12);
   const common = gitText(top, ["rev-parse", "--path-format=absolute", "--git-common-dir"]);
   if (common === null || common === "") throw new HookFault("git_common_dir_failed");
-  return sha256((0, import_node_fs3.realpathSync)(common)).slice(0, 12);
+  return sha256((0, import_node_fs2.realpathSync)(common)).slice(0, 12);
 }
 var kindOf = (st) => st === null ? null : st.isDirectory() ? "directory" : st.isFile() ? "file" : null;
 function checkoutOf(top) {
-  const own = kindOf(lstatOrNull3((0, import_node_path4.join)(top, ".git")));
+  const own = kindOf(lstatOrNull2((0, import_node_path3.join)(top, ".git")));
   if (own === null) throw new HookFault("no_dot_git");
-  let checkout = (0, import_node_fs3.realpathSync)(top);
-  if (!(own === "directory" && lstatOrNull3((0, import_node_path4.join)(top, ".git", "commondir")) === null)) {
+  let checkout = (0, import_node_fs2.realpathSync)(top);
+  if (!(own === "directory" && lstatOrNull2((0, import_node_path3.join)(top, ".git", "commondir")) === null)) {
     const common = gitText(top, ["rev-parse", "--path-format=absolute", "--git-common-dir"]);
     if (common === null || common === "") throw new HookFault("git_common_dir_failed");
-    const real = (0, import_node_fs3.realpathSync)(common);
-    if ((0, import_node_path4.basename)(real) === ".git") checkout = (0, import_node_path4.dirname)(real);
+    const real = (0, import_node_fs2.realpathSync)(common);
+    if ((0, import_node_path3.basename)(real) === ".git") checkout = (0, import_node_path3.dirname)(real);
   }
-  const dotGit = kindOf(lstatOrNull3((0, import_node_path4.join)(checkout, ".git")));
+  const dotGit = kindOf(lstatOrNull2((0, import_node_path3.join)(checkout, ".git")));
   if (dotGit === null) throw new HookFault("no_dot_git");
   return { checkout, dotGit };
 }
 function verifyBinding(top, anchor) {
   try {
-    const topReal = (0, import_node_fs3.realpathSync)(top);
-    const own = kindOf(lstatOrNull3((0, import_node_path4.join)(top, ".git")));
+    const topReal = (0, import_node_fs2.realpathSync)(top);
+    const own = kindOf(lstatOrNull2((0, import_node_path3.join)(top, ".git")));
     if (own === null) return "this folder has no usable .git";
     if (topReal === anchor.checkout) {
       if (own !== anchor.dotGit) return "the .git of this checkout is not what it was when anchored";
-      if (own === "directory" && lstatOrNull3((0, import_node_path4.join)(top, ".git", "commondir")) !== null) return "the .git folder of this checkout redirects to another repository";
+      if (own === "directory" && lstatOrNull2((0, import_node_path3.join)(top, ".git", "commondir")) !== null) return "the .git folder of this checkout redirects to another repository";
       return null;
     }
     if (own !== "file") return "this folder is not the anchored checkout and has no linked-worktree .git file";
-    const gitDir = (0, import_node_fs3.realpathSync)(gitText(top, ["rev-parse", "--path-format=absolute", "--git-dir"]) ?? "");
-    const common = (0, import_node_fs3.realpathSync)(gitText(top, ["rev-parse", "--path-format=absolute", "--git-common-dir"]) ?? "");
+    const gitDir = (0, import_node_fs2.realpathSync)(gitText(top, ["rev-parse", "--path-format=absolute", "--git-dir"]) ?? "");
+    const common = (0, import_node_fs2.realpathSync)(gitText(top, ["rev-parse", "--path-format=absolute", "--git-common-dir"]) ?? "");
     if (!gitDir.startsWith(`${common}/worktrees/`)) return "this folder is not a linked worktree of the anchored repository";
-    if ((0, import_node_path4.basename)(common) === ".git" && (0, import_node_path4.dirname)(common) !== anchor.checkout) return "this folder belongs to a repository other than the anchored checkout";
-    const back = (0, import_node_fs3.readFileSync)((0, import_node_path4.join)(gitDir, "gitdir"), "utf8").trim();
-    if ((0, import_node_path4.basename)(back) !== ".git" || (0, import_node_fs3.realpathSync)((0, import_node_path4.dirname)(back)) !== topReal) return "the linked worktree record does not name this folder";
+    if ((0, import_node_path3.basename)(common) === ".git" && (0, import_node_path3.dirname)(common) !== anchor.checkout) return "this folder belongs to a repository other than the anchored checkout";
+    const back = (0, import_node_fs2.readFileSync)((0, import_node_path3.join)(gitDir, "gitdir"), "utf8").trim();
+    if ((0, import_node_path3.basename)(back) !== ".git" || (0, import_node_fs2.realpathSync)((0, import_node_path3.dirname)(back)) !== topReal) return "the linked worktree record does not name this folder";
     return null;
   } catch {
     return "the git layout of this folder cannot be verified";
   }
 }
-function diskDigest(full, st = lstatOrNull3(full)) {
-  if (st === null) return null;
-  if (st.isSymbolicLink()) return { mode: "120000", sha: sha256((0, import_node_fs3.readlinkSync)(full, "buffer")) };
-  if (st.isFile()) return { mode: (st.mode & 73) !== 0 ? "100755" : "100644", sha: sha256((0, import_node_fs3.readFileSync)(full)) };
-  return null;
-}
-function anchorDigest(top, rel, hashes) {
-  const full = (0, import_node_path4.join)(top, rel);
-  const d = diskDigest(full);
-  if (d === null || d.mode === "120000" || !isSettingsLocal(rel)) return d;
-  const p = projectSettings((0, import_node_fs3.readFileSync)(full, "utf8"), contextOf(top, rel, hashes));
-  return p === null ? d : { mode: d.mode, sha: sha256(p) };
-}
-var jsonOrNull = (file) => {
+function lstatOrNull2(path) {
   try {
-    return JSON.parse((0, import_node_fs3.readFileSync)(file, "utf8"));
-  } catch {
-    return null;
-  }
-};
-function contextOf(top, rel, hashes) {
-  const prefix = rel.slice(0, rel.length - ".claude/settings.local.json".length);
-  const skillRoot = `${prefix}.agents/skills/`;
-  const skills = new Set(Object.keys(hashes).filter((p) => p.startsWith(skillRoot)).map((p) => p.slice(skillRoot.length).split("/")[0]));
-  return settingsContext(jsonOrNull((0, import_node_path4.join)(top, prefix, ".claude/settings.json")), jsonOrNull((0, import_node_path4.join)(top, prefix, ".mcp.json")), skills);
-}
-function matchesAnchor(top, rel, anchor) {
-  try {
-    const raw = diskDigest((0, import_node_path4.join)(top, rel));
-    const proj = anchorDigest(top, rel, anchor.ruleHashes);
-    return raw !== null && proj !== null && raw.mode === anchor.ruleModes[rel] && (proj.sha === anchor.ruleHashes[rel] || raw.sha === anchor.ruleHashes[rel]);
-  } catch {
-    return false;
-  }
-}
-function lstatOrNull3(path) {
-  try {
-    return (0, import_node_fs3.lstatSync)(path);
+    return (0, import_node_fs2.lstatSync)(path);
   } catch {
     return null;
   }
 }
-var isRecord2 = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
+var isRecord = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
 function parseAnchor(text) {
   let j;
   try {
@@ -400,28 +197,24 @@ function parseAnchor(text) {
   } catch {
     throw new HookFault("anchor_invalid");
   }
-  if (!isRecord2(j) || j.schemaVersion !== 1) throw new HookFault("anchor_invalid");
-  const { repoId, checkout, dotGit, targetBranch: target, installKind: installKind2, installSchema, targetCommit, ruleHashes, ruleModes } = j;
+  if (!isRecord(j) || j.schemaVersion !== 1) throw new HookFault("anchor_invalid");
+  const { repoId, checkout, dotGit, targetBranch: target, installKind: installKind2, installSchema } = j;
   if (typeof repoId !== "string" || !/^[0-9a-f]{12}$/.test(repoId)) throw new HookFault("anchor_invalid");
   if (typeof checkout !== "string" || !checkout.startsWith("/") || dotGit !== "directory" && dotGit !== "file") throw new HookFault("anchor_invalid");
-  if (typeof target !== "string" || typeof targetCommit !== "string") throw new HookFault("anchor_invalid");
-  if (installKind2 !== "v1" && installKind2 !== "v3" || typeof installSchema !== "number") throw new HookFault("anchor_invalid");
-  if (!isRecord2(ruleHashes) || !isRecord2(ruleModes)) throw new HookFault("anchor_invalid");
-  for (const [p, h] of Object.entries(ruleHashes)) {
-    if (typeof h !== "string" || !SHA.test(h) || typeof ruleModes[p] !== "string" || !MODES.has(ruleModes[p])) throw new HookFault("anchor_invalid");
-  }
+  if (typeof target !== "string") throw new HookFault("anchor_invalid");
+  if (installKind2 !== "v3" || typeof installSchema !== "number") throw new HookFault("anchor_invalid");
   const repos = j.nestedRepos;
   if (repos !== void 0 && (!Array.isArray(repos) || repos.some((d) => typeof d !== "string" || !REPO_DIR.test(d) || d.endsWith("/")))) throw new HookFault("anchor_invalid");
-  return { schemaVersion: 1, repoId, checkout, dotGit, targetBranch: target, installKind: installKind2, installSchema, targetCommit, ruleHashes, ruleModes, ...repos === void 0 ? {} : { nestedRepos: repos } };
+  return { schemaVersion: 1, repoId, checkout, dotGit, targetBranch: target, installKind: installKind2, installSchema, ...repos === void 0 ? {} : { nestedRepos: repos } };
 }
 function readAnchor(home, repoId) {
   const file = anchorPath(home, repoId);
-  const st = lstatOrNull3(file);
+  const st = lstatOrNull2(file);
   if (st === null) return null;
   if (!st.isFile()) throw new HookFault("anchor_not_a_file");
   let text;
   try {
-    text = (0, import_node_fs3.readFileSync)(file, "utf8");
+    text = (0, import_node_fs2.readFileSync)(file, "utf8");
   } catch {
     throw new HookFault("anchor_unreadable");
   }
@@ -429,19 +222,47 @@ function readAnchor(home, repoId) {
   if (anchor.repoId !== repoId) throw new HookFault("anchor_repo_mismatch");
   return anchor;
 }
-function verifyAnchor(anchor, yamlTarget) {
-  if (anchor.installKind !== "v3") return null;
-  if (yamlTarget === null) return "workflow/trellis.yaml is missing, unreadable, or has no single plain target_branch";
-  if (yamlTarget !== anchor.targetBranch) return "workflow/trellis.yaml names a target branch other than the anchored one";
-  return null;
-}
 
 // src/hook/nestedgit.ts
-var import_node_fs4 = require("node:fs");
-var import_node_path5 = require("node:path");
+var import_node_fs3 = require("node:fs");
+var import_node_path4 = require("node:path");
+
+// src/core/fold.ts
+var IGNORABLE = new RegExp("\\p{Default_Ignorable_Code_Point}", "gu");
+var strip = (s) => s.replace(IGNORABLE, "");
+var foldPath = (path) => strip(strip(path).normalize("NFKC")).toUpperCase().toLowerCase().replaceAll("ß", "ss");
+
+// src/hook/nestedgit.ts
 var GITFILE_MAX = 4096;
 var SAFE_NAME = /^[A-Za-z0-9._/@+-]{1,120}$/;
 var shown = (p) => SAFE_NAME.test(p) ? p : "<unprintable name>";
+var WALK_ENTRIES = 2e6;
+var NAMES_ONLY_DIRS = /* @__PURE__ */ new Set(["node_modules", "dist", "build", "out", "target", ".next", ".nuxt", ".turbo", ".cache", ".gradle", ".venv", "venv", "__pycache__", "Pods", "coverage"]);
+function leavesTree(top, topReal, rel) {
+  try {
+    const target = (0, import_node_fs3.realpathSync)((0, import_node_path4.join)(top, rel));
+    return (0, import_node_fs3.statSync)(target).isDirectory() && target !== topReal && !target.startsWith(`${topReal}/`);
+  } catch {
+    return false;
+  }
+}
+function gitEntries(top) {
+  const found = [];
+  const topReal = (0, import_node_fs3.realpathSync)(top);
+  let budget = WALK_ENTRIES;
+  const stack = [{ rel: "", namesOnly: false }];
+  for (let cur = stack.pop(); cur !== void 0; cur = stack.pop()) {
+    for (const e of (0, import_node_fs3.readdirSync)((0, import_node_path4.join)(top, cur.rel), { withFileTypes: true })) {
+      if (--budget < 0) throw new HookFault("git_walk_too_big");
+      const path = cur.rel === "" ? e.name : `${cur.rel}/${e.name}`;
+      if (foldPath(e.name) === ".git") {
+        if (cur.rel !== "") found.push(path);
+      } else if (e.isDirectory()) stack.push({ rel: path, namesOnly: cur.namesOnly || NAMES_ONLY_DIRS.has(e.name) });
+      else if (e.isSymbolicLink() && !cur.namesOnly && leavesTree(top, topReal, path)) throw new HookFault(`outside_dir_link: ${shown(path)} is a link to a folder outside the work tree; remove or replace the link outside Claude, or move it into a dependency folder such as node_modules`);
+    }
+  }
+  return found;
+}
 function gitlinks(top) {
   const r = git(top, ["ls-files", "--stage", "-z"]);
   if (r.status !== 0) throw new HookFault("git_ls_files_failed");
@@ -459,29 +280,29 @@ function modulesRoots(top, sub) {
   const roots = /* @__PURE__ */ new Set();
   for (const dir of r.stdout.toString("utf8").split("\n").filter((l) => l !== "")) {
     try {
-      if ((0, import_node_fs4.lstatSync)((0, import_node_path5.join)(dir, sub)).isDirectory()) roots.add((0, import_node_fs4.realpathSync)((0, import_node_path5.join)(dir, sub)));
+      if ((0, import_node_fs3.lstatSync)((0, import_node_path4.join)(dir, sub)).isDirectory()) roots.add((0, import_node_fs3.realpathSync)((0, import_node_path4.join)(dir, sub)));
     } catch {
     }
   }
   return [...roots];
 }
 function problem(top, entry, roots, listed) {
-  const file = (0, import_node_path5.join)(top, entry);
+  const file = (0, import_node_path4.join)(top, entry);
   let st;
   try {
-    st = (0, import_node_fs4.lstatSync)(file);
+    st = (0, import_node_fs3.lstatSync)(file);
   } catch {
     return null;
   }
   if (listed) return st.isDirectory() ? null : "a .git that is not a real folder, in a workspace repo";
   if (!st.isFile()) return "a nested .git folder or link that the workspace anchor does not list";
   if (st.size > GITFILE_MAX) return "an oversized .git file";
-  const text = (0, import_node_fs4.readFileSync)(file, "utf8");
+  const text = (0, import_node_fs3.readFileSync)(file, "utf8");
   if (!text.startsWith("gitdir: ")) return "a .git file that names no git dir";
   const named = text.slice("gitdir: ".length).replace(/\r?\n$/, "");
   if (named === "" || named !== named.trim() || /[\r\n\0]/.test(named)) return "a .git file with an odd git dir name";
   try {
-    const real = (0, import_node_fs4.realpathSync)((0, import_node_path5.resolve)((0, import_node_path5.dirname)(file), named));
+    const real = (0, import_node_fs3.realpathSync)((0, import_node_path4.resolve)((0, import_node_path4.dirname)(file), named));
     return roots.some((root) => real.startsWith(`${root}/`)) ? null : "a .git file whose git dir is not <common>/modules/<name>";
   } catch {
     return "a .git file whose git dir does not exist";
@@ -496,69 +317,55 @@ function nestedGitProblem(top, entries, nestedRepos = []) {
   const linked = new Set(links);
   const listed = new Set(nestedRepos);
   for (const e of all.sort()) {
-    const why = problem(top, e, linked.has(e) ? modules : withTrees, listed.has((0, import_node_path5.dirname)(e)));
+    const why = problem(top, e, linked.has(e) ? modules : withTrees, listed.has((0, import_node_path4.dirname)(e)));
     if (why !== null) return `${shown(e)} is ${why}`;
   }
   return null;
 }
 
+// src/core/personcmd.ts
+var import_node_fs4 = require("node:fs");
+
 // src/version.ts
-var VERSION = "1.0.0";
+var VERSION = "1.1.0";
 
 // src/core/personcmd.ts
-var PERSON_PKG = `github:dante-trinh/trellis-flow#v${VERSION}`;
+var DEFAULT_PKG = `github:dante-trinh/trellis-flow#v${VERSION}`;
+var HOST = /^git\+ssh:\/\/git@([A-Za-z0-9][A-Za-z0-9._-]{0,99})\/dante-trinh\/trellis-flow\.git(#|$)/;
+function pkgSpec(script, read = (p) => (0, import_node_fs4.readFileSync)(p, "utf8")) {
+  const root = /^(.*\/_npx\/[0-9a-f]+)\/node_modules\//.exec(script ?? "")?.[1];
+  if (root === void 0) return DEFAULT_PKG;
+  try {
+    const spec = JSON.parse(read(`${root}/package.json`)).dependencies?.["trellis-flow"];
+    const host = typeof spec === "string" ? HOST.exec(spec)?.[1] : void 0;
+    return host === void 0 ? DEFAULT_PKG : `"git+ssh://git@${host}/dante-trinh/trellis-flow.git#v${VERSION}"`;
+  } catch {
+    return DEFAULT_PKG;
+  }
+}
+var PERSON_PKG = pkgSpec(process.argv[1]);
 var SAFE_PATH = /^[A-Za-z0-9_./@+:=-]+$/;
 var quoted = (p) => SAFE_PATH.test(p) || /^<[a-z]+>$/.test(p) ? p : `'${p.replaceAll("'", "'\\''")}'`;
 var personCmd = (cmd, top = "<top>") => `npx --yes ${PERSON_PKG} ${cmd}${top === null ? "" : ` --cwd ${quoted(top)}`}`;
 
 // src/hook/drift.ts
-var MAX_LISTED = 8;
 var block = (code2, text) => ({ exit: 2, stderr: `[${code2}] ${text}
 ` });
-var v2Install = (top) => `this repo has a trellis v2 install: a person runs \`${personCmd("init", top)}\` from outside the repository to upgrade. Every tool stays blocked until then.`;
-var PERSON = "The person restores it outside Claude; every tool stays blocked until then.";
-var safeName = (p) => p.length <= 120 && /^[A-Za-z0-9._/@+-]+$/.test(p) ? p : "<unprintable name>";
-function differing(top, anchor, gitfiles) {
-  const differ = /* @__PURE__ */ new Set();
-  for (const path of Object.keys(anchor.ruleHashes)) if (!matchesAnchor(top, path, anchor)) differ.add(path);
-  for (const [path, f] of protectedOnDisk(top, (d) => gitfiles.push(d))) {
-    if (path in anchor.ruleHashes || isMachineOwn(path, f.st)) continue;
-    if (f.real !== path && f.real in anchor.ruleHashes) continue;
-    differ.add(path);
-  }
-  return [...differ].sort();
-}
-var driftText = (target, paths) => {
-  const shown2 = paths.slice(0, MAX_LISTED).map(safeName).join(", ");
-  const more = paths.length > MAX_LISTED ? ` (+${paths.length - MAX_LISTED} more)` : "";
-  return `rule files differ from ${target}: ${shown2}${more}. The person checks them outside Claude; every tool stays blocked until they match.`;
-};
+var INIT_AGAIN = (top) => `A person runs \`${personCmd("init", top)}\` again from outside the repository; every tool stays blocked until then.`;
 function classify(top, home) {
   const anchor = readAnchor(home, repoIdOf(top));
   if (anchor === null) {
-    return hasMarkers(top) ? { kind: "block", result: block("rule_drift", `trellis files are present but there is no drift anchor for this repository. The person runs trellis init or upgrade outside Claude; every tool stays blocked until then.`) } : { kind: "none" };
+    return hasMarkers(top) ? { kind: "block", result: block("anchor", `trellis files are present but there is no anchor for this repository. ${INIT_AGAIN(top)}`) } : { kind: "none" };
   }
   const unbound = verifyBinding(top, anchor);
-  if (unbound !== null) return { kind: "block", result: block("rule_drift", `${unbound}. ${PERSON}`) };
-  if (anchor.installKind === "v1") return { kind: "v1" };
-  const mismatch = verifyAnchor(anchor, targetBranch(top));
-  if (mismatch !== null) return { kind: "block", result: block("rule_drift", `${mismatch}. ${PERSON}`) };
-  return { kind: "v3", anchor };
+  return unbound === null ? { kind: "v3", anchor } : { kind: "block", result: block("anchor", `${unbound}. ${INIT_AGAIN(top)}`) };
 }
 function checkTree(top, home) {
   const state = classify(top, home);
   if (state.kind === "block") return state.result;
-  if (state.kind === "v1") return block("v2_install", v2Install(top));
   if (state.kind !== "v3") return null;
-  const { anchor } = state;
-  const target = anchor.targetBranch;
-  const commit = gitText(top, ["rev-parse", "--verify", "--quiet", `refs/heads/${target}^{commit}`]);
-  if (commit === null || commit === "") return block("rule_drift", `target branch ${safeName(target)} is missing, so rule files cannot be compared. ${PERSON}`);
-  const gitfiles = [];
-  const paths = differing(top, anchor, gitfiles);
-  if (paths.length > 0) return block("rule_drift", driftText(safeName(target), paths));
-  const nested = nestedGitProblem(top, gitfiles, anchor.nestedRepos);
-  return nested === null ? null : block("nested_git", `${nested}. A planted submodule runs its own git config on the person's git commands. The person removes it outside Claude; every tool stays blocked until then.`);
+  const nested = nestedGitProblem(top, gitEntries(top), state.anchor.nestedRepos);
+  return nested === null ? null : block("nested_git", `${nested}. A planted submodule runs its own git config on the person's git commands. If it is a project added to the workspace after init, ${INIT_AGAIN(top).replace(/^A person/, "a person")} Otherwise the person removes it outside Claude.`);
 }
 function faultCode(e) {
   if (e instanceof HookFault) return e.message;
@@ -575,17 +382,70 @@ function checkDrift(dirs, home) {
     }
     return { exit: 0 };
   } catch (e) {
-    return block("hook_internal", `PreToolUse drift check failed: ${faultCode(e)}`);
+    return block("hook_internal", `PreToolUse nested-git check failed: ${faultCode(e)}`);
+  }
+}
+
+// src/hook/gates.ts
+var import_node_fs5 = require("node:fs");
+var import_node_path5 = require("node:path");
+
+// src/core/slug.ts
+var SLUG = /^[a-z0-9][a-z0-9-]{0,39}$/;
+
+// src/hook/gates.ts
+var EDIT_TOOLS = /* @__PURE__ */ new Set(["Edit", "Write", "MultiEdit", "NotebookEdit"]);
+var FEAT = /^refs\/heads\/feat\/([a-z0-9-]+)$/;
+var safeName = (p) => p.length <= 120 && /^[A-Za-z0-9._/@+-]+$/.test(p) ? p : "<unprintable name>";
+var block2 = (code2, text) => ({ exit: 2, stderr: `[${code2}] ${text}
+` });
+function targetOf(payload) {
+  const p = payload;
+  if (typeof p.tool_name !== "string" || !EDIT_TOOLS.has(p.tool_name)) return null;
+  const raw = p.tool_name === "NotebookEdit" ? p.tool_input?.notebook_path : p.tool_input?.file_path;
+  if (typeof raw !== "string" || raw === "") return null;
+  if ((0, import_node_path5.isAbsolute)(raw)) return raw;
+  return typeof p.cwd === "string" && (0, import_node_path5.isAbsolute)(p.cwd) ? (0, import_node_path5.resolve)(p.cwd, raw) : null;
+}
+function commitFiles(top, sha) {
+  const r = git(top, ["diff-tree", "--no-commit-id", "--name-only", "--diff-filter=AM", "-r", "-z", "--no-renames", sha]);
+  return r.status === 0 ? r.stdout.toString("utf8").split("\0").filter((f) => f !== "") : null;
+}
+function checkGates(payload, home) {
+  try {
+    const path = targetOf(payload);
+    if (path === null) return null;
+    const top = enclosingTrees((0, import_node_path5.dirname)(path))[0];
+    if (top === void 0 || !(0, import_node_fs5.existsSync)((0, import_node_path5.join)(top, "workflow", "changes")) || classify(top, home).kind !== "v3") return null;
+    const branch = gitText(top, ["symbolic-ref", "--quiet", "HEAD"]) ?? "";
+    const slug = FEAT.exec(branch)?.[1];
+    if (slug === void 0 || !SLUG.test(slug) || slug === "constraints") return null;
+    const rel = (0, import_node_path5.relative)(top, path).split(import_node_path5.sep).join("/");
+    if (rel === "" || rel.startsWith("../") || (0, import_node_path5.isAbsolute)(rel)) return null;
+    const dir = `workflow/changes/${slug}`;
+    const routeText = (0, import_node_fs5.readFileSync)((0, import_node_path5.join)(top, dir, "route.md"), "utf8");
+    const inDir = (foldPath(rel) + "/").startsWith(foldPath(dir) + "/");
+    const switched = [...routeText.matchAll(/^switched:[^\n]*→[ \t]*([a-z]+)[ \t]+—/gm)].pop()?.[1];
+    const route = switched ?? /^route:[ \t]*([a-z]+)[ \t]*$/m.exec(routeText)?.[1];
+    if (route === "feature" && !(0, import_node_fs5.existsSync)((0, import_node_path5.join)(top, dir, "tasks.json")) && !inDir) {
+      return block2("plan_gate", `feature ${slug}: the plan is not approved yet (${dir}/tasks.json is missing). Write spec.md and plan.md in ${dir}/, ask the person to approve the plan in chat, then write tasks.json. Other files stay blocked until then.`);
+    }
+    const sha = route === "fix" ? /^red_test:[ \t]*([0-9a-f]{7,40})[ \t]*$/m.exec(routeText)?.[1] : void 0;
+    if (sha === void 0) return null;
+    const locked = !inDir && commitFiles(top, sha)?.some((f) => foldPath(f) === foldPath(rel));
+    return locked === true ? block2("test_locked", `fix ${slug}: ${safeName(rel)} holds the failing test committed in ${sha.slice(0, 7)} (red_test in route.md). Fix the code, not the test. A new test goes in a new file. If the test itself is wrong, write blocked.md with reason plan_wrong and stop; inside /tr-ship, return the finding as disputed with this reason instead.`) : null;
+  } catch {
+    return null;
   }
 }
 
 // src/hook/status.ts
 var import_node_child_process2 = require("node:child_process");
-var import_node_fs5 = require("node:fs");
+var import_node_fs6 = require("node:fs");
 var import_node_path6 = require("node:path");
 var ROUTES = /* @__PURE__ */ new Set(["quick", "fix", "feature", "refactor", "spike", "docs", "chore", "investigate"]);
 var REASONS = /* @__PURE__ */ new Set(["plan_wrong", "needs_person", "credential_needed", "destructive_op", "tool_unavailable", "review_unresolved", "review_conflict"]);
-var SLUG = /^[a-z0-9][a-z0-9._-]{0,80}$/;
+var SLUG2 = /^[a-z0-9][a-z0-9._-]{0,80}$/;
 var BRANCH = /^[A-Za-z0-9._/-]{1,100}$/;
 var GH_TIMEOUT_MS = 3e3;
 var FAILED = /* @__PURE__ */ new Set(["FAILURE", "TIMED_OUT", "CANCELLED", "ACTION_REQUIRED", "STARTUP_FAILURE", "ERROR"]);
@@ -594,8 +454,8 @@ function findGh() {
   for (const dir of absolutePath()) {
     const full = (0, import_node_path6.join)(dir, "gh");
     try {
-      if (!(0, import_node_fs5.statSync)(full).isFile()) continue;
-      (0, import_node_fs5.accessSync)(full, import_node_fs5.constants.X_OK);
+      if (!(0, import_node_fs6.statSync)(full).isFile()) continue;
+      (0, import_node_fs6.accessSync)(full, import_node_fs6.constants.X_OK);
       return full;
     } catch {
     }
@@ -625,7 +485,7 @@ function parsePr(text) {
     return null;
   }
 }
-var hasGithubRemote = (top) => (gitText(top, ["remote", "-v"]) ?? "").includes("github.com");
+var hasGithubRemote = (top) => /github\.com|@[A-Za-z0-9_.-]+:[A-Za-z0-9_.-]+\//.test(gitText(top, ["remote", "-v"]) ?? "");
 function committed(top, rel) {
   const r = git(top, ["cat-file", "blob", `HEAD:${rel}`]);
   return r.status === 0 ? r.stdout.toString("utf8") : null;
@@ -634,7 +494,7 @@ function readFacts(top, gh = realGh) {
   const target = targetBranch(top) ?? "main";
   const branch = gitText(top, ["symbolic-ref", "--short", "-q", "HEAD"]);
   const slugPart = branch !== null && branch !== target ? branch.slice(branch.indexOf("/") + 1) : "";
-  const slug = branch !== null && branch.includes("/") && SLUG.test(slugPart) ? slugPart : null;
+  const slug = branch !== null && branch.includes("/") && SLUG2.test(slugPart) ? slugPart : null;
   let route = null;
   let blocked = null;
   if (slug !== null) {
@@ -677,15 +537,15 @@ function describe(f) {
 
 // src/spectex/run.ts
 var import_node_child_process3 = require("node:child_process");
-var import_node_fs7 = require("node:fs");
+var import_node_fs8 = require("node:fs");
 
 // src/core/binpath.ts
-var import_node_fs6 = require("node:fs");
+var import_node_fs7 = require("node:fs");
 var import_node_path7 = require("node:path");
 var CONTROL = /[\u0000-\u001f]/;
 function executable(path) {
   try {
-    (0, import_node_fs6.accessSync)(path, import_node_fs6.constants.X_OK);
+    (0, import_node_fs7.accessSync)(path, import_node_fs7.constants.X_OK);
     return true;
   } catch {
     return false;
@@ -693,14 +553,14 @@ function executable(path) {
 }
 function realOrSelf(path) {
   try {
-    return import_node_fs6.realpathSync.native(path);
+    return import_node_fs7.realpathSync.native(path);
   } catch {
     return path;
   }
 }
 function identity(path) {
   try {
-    const st = (0, import_node_fs6.statSync)(path);
+    const st = (0, import_node_fs7.statSync)(path);
     return `${st.dev}:${st.ino}`;
   } catch {
     return null;
@@ -710,7 +570,7 @@ function isInside(path, root) {
   const target = identity(root);
   if (target === null || !(0, import_node_path7.isAbsolute)(path)) return false;
   let dir = path;
-  while (!(0, import_node_fs6.existsSync)(dir) && (0, import_node_path7.dirname)(dir) !== dir) dir = (0, import_node_path7.dirname)(dir);
+  while (!(0, import_node_fs7.existsSync)(dir) && (0, import_node_path7.dirname)(dir) !== dir) dir = (0, import_node_path7.dirname)(dir);
   for (let d = realOrSelf(dir); ; d = (0, import_node_path7.dirname)(d)) {
     if (identity(d) === target) return true;
     if ((0, import_node_path7.dirname)(d) === d) return false;
@@ -737,7 +597,7 @@ function makeRunSpectex(env2, roots) {
     try {
       const r = (0, import_node_child_process3.spawnSync)(bin, [...args], {
         env: { PATH: safePath(env2.PATH, roots), HOME: home, LC_ALL: "C", GIT_NO_REPLACE_OBJECTS: "1", GIT_CONFIG_NOSYSTEM: "1" },
-        cwd: (0, import_node_fs7.existsSync)(home) ? home : "/",
+        cwd: (0, import_node_fs8.existsSync)(home) ? home : "/",
         stdio: [input === null ? "ignore" : "pipe", "pipe", "ignore"],
         ...input === null ? {} : { input },
         timeout: timeoutMs,
@@ -766,7 +626,7 @@ function spectexRoots(top) {
 // src/spectex/source.ts
 var import_node_child_process4 = require("node:child_process");
 var import_node_crypto2 = require("node:crypto");
-var import_node_fs8 = require("node:fs");
+var import_node_fs9 = require("node:fs");
 var import_node_os = require("node:os");
 var import_node_path8 = require("node:path");
 
@@ -805,6 +665,7 @@ var CODES = {
   file_unparsable: { exit: EXIT.FAIL, vi: "`{path}` không parse được; không ghi gì.", en: "`{path}` cannot be parsed; nothing was written.", hint_vi: "Sửa file cho đúng cú pháp, rồi chạy lại", hint_en: "Fix the file's syntax, then run it again" },
   marker_invalid: { exit: EXIT.FAIL, vi: "Marker `{block}` trong `{path}` bị trùng hoặc hỏng; không ghi gì.", en: "Marker `{block}` in `{path}` is duplicated or broken; nothing was written.", hint_vi: "Sửa tay cho còn đúng một cặp begin / end, rồi chạy lại", hint_en: "Leave exactly one begin / end pair by hand, then run it again" },
   path_conflict: { exit: EXIT.FAIL, vi: "`{path}` đã có và không phải của trellis; không ghi gì.", en: "`{path}` exists and does not belong to trellis; nothing was written.", hint_vi: "Đổi tên / xoá file, hoặc `--force` (có backup)", hint_en: "Rename or remove the file, or pass `--force` (it is backed up)" },
+  path_conflict_outside: { exit: EXIT.FAIL, vi: "`{path}` nằm ngoài repo, đã có và trellis không ghi nhận là của nó (manifest thiếu hoặc file đã đổi); không ghi gì.", en: "`{path}` is outside the repository and exists, and trellis has no record of it (the manifest is missing or the file changed); nothing was written.", hint_vi: "`--force` không áp dụng cho file ngoài repo: dời file đó sang chỗ khác rồi chạy lại init", hint_en: "`--force` does not apply outside the repository: move that file aside and run init again" },
   rollback_incomplete: { exit: EXIT.PARTIAL, vi: "Rollback không trọn; backup ở `{dir}`.", en: "Rollback did not finish; the backup is in `{dir}`.", hint_vi: "Khôi phục tay từ backup", hint_en: "Restore by hand from the backup" },
   disk_full: { exit: EXIT.FAIL, vi: "Hết chỗ trống khi ghi `{path}`.", en: "Out of disk space while writing `{path}`.", hint_vi: "Giải phóng ổ đĩa; xem `data.rolled_back`", hint_en: "Free disk space; see `data.rolled_back`" },
   hook_internal: { exit: EXIT.USAGE, vi: "Hook lỗi nội bộ ({event}).", en: "Internal hook error ({event}).", hint_vi: `Kiểm \`.claude/hooks/trellis-hook.cjs\` và đường dẫn node trong \`.claude/settings.local.json\`; người chạy lại \`${personCmd("init")}\``, hint_en: `Check \`.claude/hooks/trellis-hook.cjs\` and the node path in \`.claude/settings.local.json\`; a person runs \`${personCmd("init")}\` again` },
@@ -817,9 +678,8 @@ var CODES = {
   unresolved_question: { exit: EXIT.USAGE, vi: "`init` cần một câu trả lời: {question}.", en: "`init` needs an answer: {question}.", hint_vi: "Thêm cờ nêu ở trên, hoặc chạy `init` trong terminal để được hỏi", hint_en: "Add the flag named above, or run `init` in a terminal to be asked" },
   workspace_invalid: { exit: EXIT.USAGE, vi: "`trellis.workspace.yaml` sai: `{field}`.", en: "`trellis.workspace.yaml` is invalid: `{field}`.", hint_vi: "Sửa file rồi chạy lại `init`", hint_en: "Fix the file, then run `init` again" },
   workspace_repo_state: { exit: EXIT.PRECONDITION, vi: "Repo `{dir}` của workspace {why}.", en: "The workspace repo `{dir}` {why}.", hint_vi: "Chuyển nó về nhánh đích, commit hoặc stash thay đổi, rồi chạy lại `init`", hint_en: "Switch it to its target branch, commit or stash its changes, then run `init` again" },
-  v1_install_unsupported: { exit: EXIT.PRECONDITION, vi: "Repo có bản cài trellis v1 (0.1.x); bản này không nâng cấp từ v1.", en: "This repository has a trellis v1 (0.1.x) install; this version does not upgrade from v1.", hint_vi: "Nâng lên 0.3.0 trước, rồi chạy `init` của bản này", hint_en: "Upgrade to 0.3.0 first, then run `init` of this version" },
   bot_dir_conflict: { exit: EXIT.PRECONDITION, vi: "`{path}` đã có và không phải thư mục thật.", en: "`{path}` exists and is not a real folder.", hint_vi: "Đổi tên hoặc xoá nó, rồi chạy lại", hint_en: "Rename or remove it, then run it again" },
-  anchor_failed: { exit: EXIT.PRECONDITION, vi: "Không ghi được anchor chống trôi luật: {cause}.", en: "The rule-drift anchor could not be written: {cause}.", hint_vi: `Sửa nguyên nhân rồi chạy \`${personCmd("anchor refresh")}\` (người chạy, ở checkout chính, trên nhánh đích, cây sạch)`, hint_en: `Fix the cause, then run \`${personCmd("anchor refresh")}\` (a person, in the main checkout, on the target branch, clean tree)` },
+  anchor_failed: { exit: EXIT.PRECONDITION, vi: "Không ghi được anchor: {cause}.", en: "The anchor could not be written: {cause}.", hint_vi: `Sửa nguyên nhân rồi chạy lại \`${personCmd("init")}\` (người chạy, ở checkout chính)`, hint_en: `Fix the cause, then run \`${personCmd("init")}\` again (a person, in the main checkout)` },
   not_installed_v3: { exit: EXIT.PRECONDITION, vi: "Repo chưa cài trellis v3.", en: "trellis v3 is not installed in this repository.", hint_vi: `\`${personCmd("init")}\``, hint_en: `\`${personCmd("init")}\`` }
 };
 
@@ -885,12 +745,12 @@ var TrellisError = class extends Error {
 var BRANCH2 = /^[A-Za-z0-9._][A-Za-z0-9._/-]{0,199}$/;
 var GLOB_SHAPE = /^workflow\/changes\/[^/]+\/decisions\.md$/;
 var DECISIONS_NAME = /decisions\.md$/i;
-var SLUG2 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/;
-var SHA2 = /^[0-9a-f]{40,64}$/;
+var SLUG3 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/;
+var SHA = /^[0-9a-f]{40,64}$/;
 var SAFE2 = ["--no-replace-objects", "-c", "core.commitGraph=false", "-c", "core.fsmonitor=false", "-c", "core.pager=cat", "-c", "core.attributesFile=/dev/null", "-c", "core.hooksPath=/dev/null", "-c", "gpg.program="];
 var LOCAL_MS = 3e3;
 var REMOTE_MS = 15e3;
-function targetOf(top, home) {
+function targetOf2(top, home) {
   try {
     return readAnchor(home, repoIdOf(top))?.targetBranch ?? null;
   } catch {
@@ -909,13 +769,13 @@ function run(top, args, timeoutMs, input, cwd = top) {
 }
 var NO_HELPER = (target) => `origin (it could not be read without your credential helper or keys: use an ssh remote, or check the SHA of ${target} on the host yourself and run with --commit <sha>)`;
 function lsRemote(top, url, target, ms) {
-  const empty = (0, import_node_fs8.mkdtempSync)((0, import_node_path8.join)((0, import_node_os.tmpdir)(), "trellis-lsremote-"));
+  const empty = (0, import_node_fs9.mkdtempSync)((0, import_node_path8.join)((0, import_node_os.tmpdir)(), "trellis-lsremote-"));
   try {
     const ls = run(top, [...transport(), "ls-remote", "--", url, `refs/heads/${target}`], ms, void 0, empty);
     const row = ls.status === 0 ? ls.stdout.toString("utf8").split("\n").map((x) => x.split("	")).find((f) => f[1] === `refs/heads/${target}`) : void 0;
     return row?.[0] ?? "";
   } finally {
-    (0, import_node_fs8.rmSync)(empty, { recursive: true, force: true });
+    (0, import_node_fs9.rmSync)(empty, { recursive: true, force: true });
   }
 }
 function resolveTarget(top, target, explicit = null, remoteMs = REMOTE_MS) {
@@ -923,7 +783,7 @@ function resolveTarget(top, target, explicit = null, remoteMs = REMOTE_MS) {
   const replace = run(top, ["for-each-ref", "--format=%(refname)", "refs/replace"], LOCAL_MS).stdout.toString("utf8").trim();
   if (replace !== "") throw new TrellisError("replace_refs_present", { ref: replace.split("\n")[0] });
   const l = run(top, ["rev-parse", "--verify", "--quiet", `refs/heads/${target}^{commit}`], LOCAL_MS);
-  const local = l.status === 0 && SHA2.test(l.stdout.toString("utf8").trim()) ? l.stdout.toString("utf8").trim() : null;
+  const local = l.status === 0 && SHA.test(l.stdout.toString("utf8").trim()) ? l.stdout.toString("utf8").trim() : null;
   if (explicit !== null && explicit !== local) throw new TrellisError("usage_error", { cmd: "decisions --commit" });
   const url = run(top, ["config", "--local", "--get", "remote.origin.url"], LOCAL_MS).stdout.toString("utf8").trim();
   const urlOk = url !== "" && (REMOTE_URL.test(url) || localOk() && (url.startsWith("/") || url.startsWith("file://")));
@@ -933,7 +793,7 @@ function resolveTarget(top, target, explicit = null, remoteMs = REMOTE_MS) {
   if (!urlOk) throw new TrellisError("fetch_failed", { remote: "origin (its URL is not https://, ssh:// or user@host:path)" });
   if (rewritten) throw new TrellisError("fetch_failed", { remote: "origin (the repository config rewrites URLs with url.<base>.insteadOf)" });
   const sha = lsRemote(top, url, target, remoteMs);
-  if (!SHA2.test(sha)) {
+  if (!SHA.test(sha)) {
     if (explicit !== null) return { commit: explicit, source: "person", url, why: "unreadable" };
     throw new TrellisError("fetch_failed", { remote: NO_HELPER(target) });
   }
@@ -981,12 +841,12 @@ function treeEntries(bytes, idLen) {
   return out;
 }
 function listDecisionBlobs(top, commit, opts = {}) {
-  if (!SHA2.test(commit)) return [];
+  if (!SHA.test(commit)) return [];
   if (run(top, ["cat-file", "-e", commit], LOCAL_MS).status !== 0) return [];
   const bad = (detail) => new TrellisError("objects_unsafe", { cause: "hash", detail });
   const common = run(top, ["rev-parse", "--git-common-dir"], LOCAL_MS).stdout.toString("utf8").trim();
   try {
-    (0, import_node_fs8.lstatSync)((0, import_node_path8.join)((0, import_node_path8.isAbsolute)(common) ? common : (0, import_node_path8.join)(top, common), "objects", "info", "alternates"));
+    (0, import_node_fs9.lstatSync)((0, import_node_path8.join)((0, import_node_path8.isAbsolute)(common) ? common : (0, import_node_path8.join)(top, common), "objects", "info", "alternates"));
     throw new TrellisError("objects_unsafe", { cause: "alternates", detail: "objects/info/alternates" });
   } catch (e) {
     if (e instanceof TrellisError) throw e;
@@ -1033,8 +893,8 @@ function listDecisionBlobs(top, commit, opts = {}) {
   for (const f of found) {
     const exact = GLOB_SHAPE.test(f.path);
     const slug = exact ? f.path.split("/")[2] : safeName2(f.path);
-    const plain = exact && (f.mode === "100644" || f.mode === "100755") && SLUG2.test(slug);
-    const item = (bytes, invalid) => ({ slug: exact && !SLUG2.test(slug) ? safeName2(slug) : slug, path: f.path, blob: f.id, bytes, invalid });
+    const plain = exact && (f.mode === "100644" || f.mode === "100755") && SLUG3.test(slug);
+    const item = (bytes, invalid) => ({ slug: exact && !SLUG3.test(slug) ? safeName2(slug) : slug, path: f.path, blob: f.id, bytes, invalid });
     if (!plain) out.push(item(none, "not_plain_file"));
     else if (!wantBlobs) out.push(item(none, null));
     else if (opts.deadline !== void 0 && Date.now() >= opts.deadline) break;
@@ -1049,8 +909,8 @@ var savedPath = (home, repoId) => (0, import_node_path8.join)(home, ".trellis-fl
 function readState(home, repoId) {
   const ids = (v) => new Set(Array.isArray(v) ? v.filter((x) => typeof x === "string") : []);
   try {
-    if (!(0, import_node_fs8.lstatSync)(savedPath(home, repoId)).isFile()) return { saved: /* @__PURE__ */ new Set(), rejected: /* @__PURE__ */ new Set() };
-    const j = JSON.parse((0, import_node_fs8.readFileSync)(savedPath(home, repoId), "utf8"));
+    if (!(0, import_node_fs9.lstatSync)(savedPath(home, repoId)).isFile()) return { saved: /* @__PURE__ */ new Set(), rejected: /* @__PURE__ */ new Set() };
+    const j = JSON.parse((0, import_node_fs9.readFileSync)(savedPath(home, repoId), "utf8"));
     return { saved: ids(j.blobs), rejected: ids(j.rejected) };
   } catch {
     return { saved: /* @__PURE__ */ new Set(), rejected: /* @__PURE__ */ new Set() };
@@ -1062,12 +922,12 @@ function readSaved(home, repoId) {
 }
 
 // src/installer/paths.ts
-var import_node_fs9 = require("node:fs");
+var import_node_fs10 = require("node:fs");
 var import_node_os2 = require("node:os");
 function realHome(env2) {
   const home = env2.HOME !== void 0 && env2.HOME.startsWith("/") ? env2.HOME : (0, import_node_os2.homedir)();
   try {
-    return (0, import_node_fs9.realpathSync)(home);
+    return (0, import_node_fs10.realpathSync)(home);
   } catch {
     return home;
   }
@@ -1102,7 +962,7 @@ function spectexLines(top) {
     }
     if (behind !== null) lines.push(`spectex: index stale (${behind} commits behind)`);
     try {
-      const target = targetOf(top, home);
+      const target = targetOf2(top, home);
       const left = () => BUDGET_MS - (Date.now() - start);
       const commit = target === null || left() <= 0 ? null : resolveTarget(top, target, null, left()).commit;
       if (commit !== null && left() > 0) {
@@ -1138,28 +998,28 @@ function sessionStart(payload, gh = realGh) {
 }
 
 // src/cli/lang.ts
-var import_node_fs10 = require("node:fs");
+var import_node_fs11 = require("node:fs");
 var import_node_path9 = require("node:path");
 var HEAD_BYTES = 64 * 1024;
 function head(path) {
   let fd;
   try {
-    fd = (0, import_node_fs10.openSync)(path, "r");
+    fd = (0, import_node_fs11.openSync)(path, "r");
   } catch {
     return null;
   }
   try {
     const buf = Buffer.alloc(HEAD_BYTES);
-    return buf.subarray(0, (0, import_node_fs10.readSync)(fd, buf, 0, HEAD_BYTES, 0)).toString("utf8");
+    return buf.subarray(0, (0, import_node_fs11.readSync)(fd, buf, 0, HEAD_BYTES, 0)).toString("utf8");
   } catch {
     return null;
   } finally {
-    (0, import_node_fs10.closeSync)(fd);
+    (0, import_node_fs11.closeSync)(fd);
   }
 }
 function repoYamlHead(cwd) {
   for (let d = cwd; ; d = (0, import_node_path9.dirname)(d)) {
-    if ((0, import_node_fs10.existsSync)((0, import_node_path9.join)(d, ".git"))) return head((0, import_node_path9.join)(d, "workflow", "trellis.yaml"));
+    if ((0, import_node_fs11.existsSync)((0, import_node_path9.join)(d, ".git"))) return head((0, import_node_path9.join)(d, "workflow", "trellis.yaml"));
     if ((0, import_node_path9.dirname)(d) === d) return null;
   }
 }
@@ -1177,7 +1037,7 @@ function detectLang(env2) {
 
 // src/hook/notify.ts
 var import_node_child_process5 = require("node:child_process");
-var import_node_fs11 = require("node:fs");
+var import_node_fs12 = require("node:fs");
 var import_node_path10 = require("node:path");
 
 // src/core/notify.ts
@@ -1199,7 +1059,7 @@ var OSC_TERMINALS = ["ghostty", "kitty", "iTerm.app", "WezTerm"];
 var realDeps = (env2) => ({
   platform: process.platform,
   env: env2,
-  exists: import_node_fs11.existsSync,
+  exists: import_node_fs12.existsSync,
   spawn: (cmd, args, opts) => (0, import_node_child_process5.spawnSync)(cmd, [...args], { timeout: opts.timeout, stdio: "ignore" })
 });
 function desktopEnabled(selfDir) {
@@ -1245,7 +1105,10 @@ function runHook(io) {
   switch (io.event) {
     case "PreToolUse":
       if (typeof payload !== "object" || payload === null || Array.isArray(payload)) return { exit: 2, stderr: "[hook_internal] PreToolUse payload is not JSON; every tool stays blocked.\n" };
-      return checkDrift(dirs, homeOf(io));
+      {
+        const drift = checkDrift(dirs, homeOf(io));
+        return drift.exit === 0 ? checkGates(payload, homeOf(io)) ?? drift : drift;
+      }
     case "SessionStart":
       return sessionStart(payload);
     case "Notification":
@@ -1267,7 +1130,7 @@ var code;
 try {
   let stdin = "";
   try {
-    stdin = (0, import_node_fs12.readFileSync)(0, "utf8");
+    stdin = (0, import_node_fs13.readFileSync)(0, "utf8");
   } catch {
   }
   const r = runHook({ event, stdin, env: process.env, selfDir: __dirname });

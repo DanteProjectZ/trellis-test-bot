@@ -6,6 +6,7 @@
 - `workflow/changes/<slug>/`: state of the current work (`route.md`, `spec.md`, `plan.md`, `review.md`, `blocked.md`).
 - Route skills `tr-route-<route>` list the steps. `/tr-ship` reviews, fixes, pushes, opens the PR.
 - "tiếp" or "continue": read `workflow/changes/<slug>/` and the SessionStart line, then do the next step of the route skill.
+- A repo change asked in chat: on `feat/<slug>` it joins that route; else follow `.claude/commands/tr/start.md`. Questions need no route.
 
 ## Routes
 

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "trellis_version": "1.0.0",
+  "trellis_version": "1.1.0",
   "files": [
     {
       "path": ".agents/skills/NOTICES.md",
@@ -88,13 +88,13 @@
     },
     {
       "path": ".agents/skills/tr-route-feature/SKILL.md",
-      "sha256": "93c3b6501ae1de434bad93f0921fc88e16a3a542f4fe66d25439084f4e70262f",
+      "sha256": "1036be288026014fb76445d8339f26e0d546eaf63ab2d7ea876f14686d461c61",
       "mode": "file",
       "owner": "core"
     },
     {
       "path": ".agents/skills/tr-route-fix/SKILL.md",
-      "sha256": "e0d62a066f5793338214ff3361125fb85c7f53e6c945102ce6a00297fc9735d1",
+      "sha256": "c9bca920bf17be47c97d9752428d2eae81b78c4eca22f7ff7270225017a5852e",
       "mode": "file",
       "owner": "core"
     },
@@ -124,7 +124,7 @@
     },
     {
       "path": ".agents/skills/tr-route-switch/SKILL.md",
-      "sha256": "124cee022129cc25c3522e5aff190a27c30ee9f3147690480c1950350aa51c26",
+      "sha256": "de4c2dac9e448a3fdc7a2956e2c68cf8d6a39da3cd56e2ca7b64355972904fd4",
       "mode": "file",
       "owner": "core"
     },
@@ -136,7 +136,7 @@
     },
     {
       "path": ".claude/agents/tr-correctness.md",
-      "sha256": "df6bc6d272675e62d8dab40c8bbee2235d67c9f031c2fb24cc9e68a02116dc7d",
+      "sha256": "3232ad6f19d5fb89fd78e0d296c1edb793e2881f8c683948b98d6bf34f9ac510",
       "mode": "file",
       "owner": "core"
     },
@@ -160,19 +160,19 @@
     },
     {
       "path": ".claude/commands/tr/start.md",
-      "sha256": "80d776e1bc4a3a8698fd86d15c7f98faf7dc0c37aeac476d4d626b4d08b96f65",
+      "sha256": "2f7aa16352851e8397b444a2a57f06787e8ed966938b69397b3c62b03c0a531e",
       "mode": "file",
       "owner": "core"
     },
     {
       "path": ".claude/hooks/trellis-hook.cjs",
-      "sha256": "f90d788e832845d026cddf6bade4ecd63408af7614ca883a95f8b31273c266b1",
+      "sha256": "26ed0e160be91e67f89f505d02c55900035f2dcf1f08585780aa2dba58d19a28",
       "mode": "file",
       "owner": "core"
     },
     {
       "path": ".claude/workflows/tr-ship.js",
-      "sha256": "94e3c17440cf05027f55164bce52c0b3d2327d43ece9660d9f67cbd051b86aa9",
+      "sha256": "b87436251e82afde23818a2b772230725286e0f13ac3d9284341c2b56ae714c2",
       "mode": "file",
       "owner": "core"
     },
@@ -241,7 +241,40 @@
       "marker": "trellis-claude"
     }
   ],
-  "outside": [],
+  "outside": [
+    {
+      "path": "~/.trellis-flow/bin/tr-gitleaks.toml",
+      "sha256": "1eb56fe74c39ac770e3bc661e528bea7d5fba29549ec147f03793a520e654506"
+    },
+    {
+      "path": "~/.trellis-flow/bin/tr-lib.sh",
+      "sha256": "3e68e4b73f3cfdb8ca90a31824eed04741699619714cea63201bc067e0e5bc10"
+    },
+    {
+      "path": "~/.trellis-flow/bin/tr-pr",
+      "sha256": "316201ed1d09cc7634b5e13d3164754bebd42fca53edb735e3cacfc8339c1e7a"
+    },
+    {
+      "path": "~/.trellis-flow/bin/tr-push",
+      "sha256": "b1e672b89941bf8915f31a0837f6f56511820ce625ddde0ce4a79f52874a3707"
+    },
+    {
+      "path": "~/.trellis-flow/bin/trellis-hook.cjs",
+      "sha256": "26ed0e160be91e67f89f505d02c55900035f2dcf1f08585780aa2dba58d19a28"
+    },
+    {
+      "path": "~/.trellis-flow/bot/bd33f496c9b2/git-credential-helper",
+      "sha256": "6ea2f9e1c193e795155121268be35b496165d45a52672b465eef3f1ac32a281e"
+    },
+    {
+      "path": "~/.trellis-flow/bot/bd33f496c9b2/ruleset.json",
+      "sha256": "ec633e2d7ff666f8d7af03f72c0ad04753f2683f0ab83e2b11b4664d99d6b964"
+    },
+    {
+      "path": "~/.trellis-flow/bot/bd33f496c9b2/security.json",
+      "sha256": "b4ca4b371e9d225209703217fd19686e457fb1f827b6ea21a82d4611de4d7e17"
+    }
+  ],
   "vendor": [
     {
       "name": "agent-skills",
@@ -1068,44 +1101,42 @@
         "mcp__spectex__spectex_trace_symbol"
       ]
     ],
-    "local": [],
-    "user": [
+    "local": [
+      [
+        "claudeMdExcludes",
+        "/Users/danhtrinh/.claude/rules/README.md"
+      ],
+      [
+        "claudeMdExcludes",
+        "/Users/danhtrinh/.claude/rules/common/agents.md"
+      ],
+      [
+        "claudeMdExcludes",
+        "/Users/danhtrinh/.claude/rules/common/code-review.md"
+      ],
+      [
+        "claudeMdExcludes",
+        "/Users/danhtrinh/.claude/rules/common/development-workflow.md"
+      ],
+      [
+        "claudeMdExcludes",
+        "/Users/danhtrinh/.claude/rules/common/hooks.md"
+      ],
+      [
+        "claudeMdExcludes",
+        "/Users/danhtrinh/.claude/rules/common/performance.md"
+      ],
+      [
+        "claudeMdExcludes",
+        "/Users/danhtrinh/.claude/rules/common/testing.md"
+      ],
       [
         "hooks",
         "PreToolUse",
         "{\"matcher\":\"*\",\"hooks\":[{\"type\":\"command\",\"command\":\"/Users/danhtrinh/.local/share/fnm/node-versions/v24.18.0/installation/bin/node /Users/danhtrinh/.trellis-flow/bin/trellis-hook.cjs PreToolUse\",\"timeout\":5,\"onFailure\":\"block\"}]}"
-      ],
-      [
-        "sandbox",
-        "excludedCommands",
-        "/Users/danhtrinh/.trellis-flow/bin/tr-push"
-      ],
-      [
-        "sandbox",
-        "excludedCommands",
-        "/Users/danhtrinh/.trellis-flow/bin/tr-pr"
-      ],
-      [
-        "sandbox",
-        "excludedCommands",
-        "/Users/danhtrinh/.trellis-flow/bin/tr-pr --draft"
-      ],
-      [
-        "permissions",
-        "ask",
-        "Bash(/Users/danhtrinh/.trellis-flow/bin/tr-push)"
-      ],
-      [
-        "permissions",
-        "ask",
-        "Bash(/Users/danhtrinh/.trellis-flow/bin/tr-pr)"
-      ],
-      [
-        "permissions",
-        "ask",
-        "Bash(/Users/danhtrinh/.trellis-flow/bin/tr-pr --draft)"
       ]
     ],
+    "user": [],
     "mcp": [
       [
         "mcpServers",
