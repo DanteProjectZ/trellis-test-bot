@@ -20,7 +20,8 @@ One file with no dependencies. A line-based scanner splits the text into prose a
 1. Prepare the text: strip one leading BOM (`U+FEFF`), normalize line endings (`\r\n` and `\r`) to `\n`, and normalize Unicode to NFC.
 2. Front matter: if line 1 is exactly `---`, skip up to the next line that is `---` or `...`. With no closing line, nothing is skipped.
 3. Scan lines and track state:
-   - Fence opens on `^ {0,3}(`{3,}|~{3,})`. It closes on a line of the same character, at least as long, with only whitespace after. An unclosed fence runs to end of file.
+   - A **blank line** is empty or contains only spaces and tabs. A blank line is never an indented code line.
+   - Fence opens on `^ {0,3}(`{3,}|~{3,})`. It closes on a line with up to 3 leading spaces, then a run of the same character at least as long, then only whitespace (regex `^ {0,3}<run>[ \t]*$`). A line with 4+ leading spaces inside a fence does not close it. An unclosed fence runs to end of file.
    - An indented code line starts with 4 spaces or a tab. It starts a block only at a **block boundary**: the first line of the body (after front matter, if any), the line after a blank line, the line after a closing fence, or the line after another indented code line. Elsewhere, inside a paragraph, it is prose.
    - Reference definitions (`^ {0,3}\[[^\]]+\]:\s*\S+`) are dropped.
    - Every other line is prose.
@@ -33,8 +34,14 @@ One file with no dependencies. A line-based scanner splits the text into prose a
    | 3 | Image | `/!\[([^\]]*)\]\([^)]*\)/g` | ` $1 ` |
    | 4 | Inline link (URL and title) | `/\[([^\]]*)\]\([^)]*\)/g` | ` $1 ` |
    | 5 | Reference link `[text][id]` | `/\[([^\]]*)\]\[[^\]]*\]/g` | ` $1 ` |
-   | 6 | Autolink (URL or e-mail) | `/<(?:[A-Za-z][A-Za-z0-9+.-]{1,31}:[^\s<>]*\|[^\s<>@]+@[^\s<>]+)>/g` | ` ` |
+   | 6 | Autolink (URL or e-mail) | see below the table | ` ` |
    | 7 | HTML tag | `/<\/?[A-Za-z][A-Za-z0-9-]*(?:\s[^<>]*)?\/?>/g` | ` ` |
+
+   Regex 6, outside the table so the `|` is literal alternation:
+
+   ```js
+   /<(?:[A-Za-z][A-Za-z0-9+.-]{1,31}:[^\s<>]*|[^\s<>@]+@[^\s<>]+)>/g
+   ```
 
    Code spans go first because their content is literal (`` `<!--` `` must not open a comment). An unmatched backtick stays as a punctuation token. A stray `<` or `>`, as in `a < b > c`, matches no rule and is not a word.
 5. Split on whitespace. Count tokens that match `/[\p{L}\p{N}]/u`.
@@ -45,7 +52,7 @@ Public API:
 
 - `export function countWords(markdown: string): number` — pure, no I/O.
 - CLI entry runs only when the file is the main module: `process.argv[1]` is set and `realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)`. This also works through symlinks.
-- The CLI takes exactly one argument. Zero or two or more arguments print the usage line and exit 1.
+- The CLI takes exactly one argument. Zero or two or more arguments print the usage line `Usage: node scripts/wordcount.mjs <file.md>` to stderr and exit 1.
 
 Runtime: Node ≥ 20 (ES modules, `node:test`, `\p{…}` regex). Tested on Node 24.18.0.
 
@@ -67,4 +74,6 @@ Runtime: Node ≥ 20 (ES modules, `node:test`, `\p{…}` regex). Tested on Node 
 - Multiple files, globs, or stdin input.
 - Full CommonMark: indented code inside list items, setext edge cases, nested containers, nested brackets in link text, and parentheses inside URLs. A 4-space indented list continuation after a blank line counts as code. These limitations are documented in the script header.
 - Inline code spans that cross a paragraph break are matched over the joined prose; this is accepted.
+- Text that looks like a tag is removed: in `if x<y and z>w`, the words `y and z` match regex 7 and are not counted. This is documented in the script header.
+- The symlink case of the main-module check has no test.
 - A `package.json` or a `CONSTRAINTS.md` test check.
