@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "trellis_version": "1.4.5",
+  "trellis_version": "1.4.6",
   "files": [
     {
       "path": ".agents/skills/NOTICES.md",
@@ -256,7 +256,7 @@
     },
     {
       "path": ".claude/hooks/trellis-hook.cjs",
-      "sha256": "0a9014959297a42a962106b0dbef88118ebf380eb6783d46a12eee1d6e5cc0e5",
+      "sha256": "080ba31210225f359fa4a7ca76fb2941eaad82d85dd67332bcb92efdd4769c54",
       "mode": "file",
       "owner": "core"
     },
@@ -348,7 +348,7 @@
     },
     {
       "path": "~/.trellis-flow/bin/tr-packs",
-      "sha256": "52859767be4f7be9a67c9489f15a3fdb9dd6a0326f0a41ebcbbc4ed35e5a79e0"
+      "sha256": "c1ca035e1d45d27947bcb7dfd9ca09ddb4c883b4e51188c5eac4c17db9ac143e"
     },
     {
       "path": "~/.trellis-flow/bin/tr-pr",
@@ -356,7 +356,7 @@
     },
     {
       "path": "~/.trellis-flow/bin/tr-push",
-      "sha256": "9c1cee3c4a414e4b56bff0779faa1054f2f2327cceb594e92aa9ebf2c7b283aa"
+      "sha256": "fb49fa30eee732e530fcfa3c6d813b8ecd8f819ee7dbf81f201a704d8df99897"
     },
     {
       "path": "~/.trellis-flow/bin/tr-sync",
@@ -364,7 +364,7 @@
     },
     {
       "path": "~/.trellis-flow/bin/trellis-hook.cjs",
-      "sha256": "0a9014959297a42a962106b0dbef88118ebf380eb6783d46a12eee1d6e5cc0e5"
+      "sha256": "080ba31210225f359fa4a7ca76fb2941eaad82d85dd67332bcb92efdd4769c54"
     },
     {
       "path": "~/.trellis-flow/bot/bd33f496c9b2/git-credential-helper",

@@ -352,7 +352,7 @@ function nestedGitProblem(top, entries, nestedRepos = []) {
 var import_node_fs4 = require("node:fs");
 
 // src/version.ts
-var VERSION = "1.4.5";
+var VERSION = "1.4.6";
 
 // src/core/personcmd.ts
 var DEFAULT_PKG = `github:dante-trinh/trellis-flow#v${VERSION}`;
