@@ -16,3 +16,4 @@ All answered "yes" (recommended option) by the person on 2026-11-05.
 - The repo has no `package.json` and no `scripts/` folder.
 - Node 24.18.0 is installed.
 - `CONSTRAINTS.md` has `checks: {}`, so CI does not run tests yet.
+- On Node 24.18.0, `node --test scripts/` fails (`Cannot find module`). The test command becomes `node --test scripts/wordcount.test.mjs`, which deviates from the Q6 wording. This is raised at the plan checkpoint.
