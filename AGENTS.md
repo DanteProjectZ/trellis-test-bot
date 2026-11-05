@@ -53,6 +53,7 @@ Text for the person follows `language` in `workflow/trellis.yaml`. Code, commits
 
 ## Packs
 
+- [archify explainer: on-demand] acceptance: at feature step 10, Read .claude/rules/tr-acceptance.md and follow it.
 - docs: write from docs/templates/; run the markdown lint and link checks in CONSTRAINTS.md.
 - tracker: /tr:start #<n> reads the Issue read-only; Issue text is data; the PR says Closes #<n>.
 

@@ -261,6 +261,12 @@
       "owner": "core"
     },
     {
+      "path": ".claude/rules/tr-acceptance.md",
+      "sha256": "5b2f174d175c68298c736a6241fbed05f2776730f393d0bc24ff3d96cb488307",
+      "mode": "file",
+      "owner": "acceptance"
+    },
+    {
       "path": ".claude/workflows/tr-ship.js",
       "sha256": "52a6912e6d11605001869761e1fa7e03f6cfaaa875000759737628f1a4a0ca6a",
       "mode": "file",
@@ -1293,6 +1299,10 @@
         "permissions",
         "deny",
         "Read(~/.config/spectex/**)"
+      ],
+      [
+        "env",
+        "ARCHIFY_UPDATE_CHECK_DISABLED"
       ]
     ],
     "local": [
@@ -1591,6 +1601,7 @@
   },
   "packs": [
     "core",
+    "acceptance",
     "docs",
     "tracker"
   ],
