@@ -1,10 +1,10 @@
 {
   "schemaVersion": 2,
-  "trellis_version": "1.0.0",
+  "trellis_version": "1.4.6",
   "files": [
     {
       "path": ".agents/skills/NOTICES.md",
-      "sha256": "f6aac2adc780132b9af70b93add7e2e310562461bda0ad0110fad755ccdeb0b6",
+      "sha256": "52a330d9248470bf5d1825b4b27776d4a844e2db791d3f3188076dac405ed687",
       "mode": "file",
       "owner": "core"
     },
@@ -39,10 +39,40 @@
       "owner": "agent-skills"
     },
     {
+      "path": ".agents/skills/diagnosing-bugs/SKILL.md",
+      "sha256": "849198df88cdb65fd0d97236604c1fca7ff2f22d2f705f9724a800d0266b118d",
+      "mode": "file",
+      "owner": "mattpocock-skills"
+    },
+    {
+      "path": ".agents/skills/diagnosing-bugs/agents/openai.yaml",
+      "sha256": "3e430dbe4334a87597488c060cb3dc3786bb00c9182877d6f5ec41f62490e90b",
+      "mode": "file",
+      "owner": "mattpocock-skills"
+    },
+    {
+      "path": ".agents/skills/diagnosing-bugs/scripts/hitl-loop.template.sh",
+      "sha256": "35103539fc36873eea36074769ad454f9379d6fc8b2dc0e26ce987fd3bfe5503",
+      "mode": "file",
+      "owner": "mattpocock-skills"
+    },
+    {
       "path": ".agents/skills/documentation-and-adrs/SKILL.md",
       "sha256": "b60d503925bbaacee7fd63935db70b9ced5b2514ff5a56a672130e01b9690bc5",
       "mode": "file",
       "owner": "agent-skills"
+    },
+    {
+      "path": ".agents/skills/grilling/SKILL.md",
+      "sha256": "befdff1e27a1dfe2a294d5871169ac1afe16d983911daa4f32627514a48c1e15",
+      "mode": "file",
+      "owner": "mattpocock-skills"
+    },
+    {
+      "path": ".agents/skills/grilling/agents/openai.yaml",
+      "sha256": "1411d7df7d99b7e621a1ff8283c8133cc2464be63d064e52d8ce169c6800ee9b",
+      "mode": "file",
+      "owner": "mattpocock-skills"
     },
     {
       "path": ".agents/skills/observability-and-instrumentation/SKILL.md",
@@ -63,6 +93,42 @@
       "owner": "agent-skills"
     },
     {
+      "path": ".agents/skills/prototype/LOGIC.md",
+      "sha256": "f61c7d249e786a79ef289018901c348271e1798dd0b0bc5607b5c6f4d4a01ab9",
+      "mode": "file",
+      "owner": "mattpocock-skills"
+    },
+    {
+      "path": ".agents/skills/prototype/SKILL.md",
+      "sha256": "714de632d116bb73f65cdb5a882db15b9369a6713b9a47c0fad827848f0bfbe3",
+      "mode": "file",
+      "owner": "mattpocock-skills"
+    },
+    {
+      "path": ".agents/skills/prototype/UI.md",
+      "sha256": "723211e878acbc7b6ff09755263f3295cde724ba902ff0064da41eed51d45ad3",
+      "mode": "file",
+      "owner": "mattpocock-skills"
+    },
+    {
+      "path": ".agents/skills/prototype/agents/openai.yaml",
+      "sha256": "5af65e43ab41a350436697b81e27b7f848d36782043b73c322bb2c9fa9cc55dc",
+      "mode": "file",
+      "owner": "mattpocock-skills"
+    },
+    {
+      "path": ".agents/skills/retro/SKILL.md",
+      "sha256": "33fbc28568e3146f20fd908b12998bc0ab30aa4f4c87288199a40793efa94696",
+      "mode": "file",
+      "owner": "mattpocock-skills"
+    },
+    {
+      "path": ".agents/skills/retro/agents/openai.yaml",
+      "sha256": "cb6fb9d7e6b4be5975f41f6def1dd00a1255bad5d9b02696b124c924a8b8745c",
+      "mode": "file",
+      "owner": "mattpocock-skills"
+    },
+    {
       "path": ".agents/skills/source-driven-development/SKILL.md",
       "sha256": "c59faf851377f0eeda45306398d16eb96d77ab1c2fd3e1a7fb58e9a0af33c1e9",
       "mode": "file",
@@ -76,25 +142,25 @@
     },
     {
       "path": ".agents/skills/tr-route-chore/SKILL.md",
-      "sha256": "c2fa7ddd20e853e8d6bfea2fb3a9f2c342ac026357336da6189f8177ec8ebe54",
+      "sha256": "20af3bf9b17fca507d0c0ecea7955fadff84e643e95ef3b72141f3c2b029bd42",
       "mode": "file",
       "owner": "core"
     },
     {
       "path": ".agents/skills/tr-route-docs/SKILL.md",
-      "sha256": "44b22c669907012936e25638cf52f23611f814b8a9ae187276ebc8ee2249b905",
+      "sha256": "5b70dc7cd0e0af984fa61e169a5fb379937c56ef34650aa365739dc7b7d248ae",
       "mode": "file",
       "owner": "core"
     },
     {
       "path": ".agents/skills/tr-route-feature/SKILL.md",
-      "sha256": "93c3b6501ae1de434bad93f0921fc88e16a3a542f4fe66d25439084f4e70262f",
+      "sha256": "0247e20826e7dbf0a1686e784e3d825d8a80117a67a453eac379055721ce6915",
       "mode": "file",
       "owner": "core"
     },
     {
       "path": ".agents/skills/tr-route-fix/SKILL.md",
-      "sha256": "e0d62a066f5793338214ff3361125fb85c7f53e6c945102ce6a00297fc9735d1",
+      "sha256": "c9bca920bf17be47c97d9752428d2eae81b78c4eca22f7ff7270225017a5852e",
       "mode": "file",
       "owner": "core"
     },
@@ -112,19 +178,19 @@
     },
     {
       "path": ".agents/skills/tr-route-refactor/SKILL.md",
-      "sha256": "42931f619c4b5d4bf3379ffc02edd390c758bed6488951613d98287fcb15de15",
+      "sha256": "2601819133e93d81073e88646b23d4c40539c4dca88960402fdc382c60f7ecf9",
       "mode": "file",
       "owner": "core"
     },
     {
       "path": ".agents/skills/tr-route-spike/SKILL.md",
-      "sha256": "6047cb3b05c27bfa32304c9666aa5893e3861d5e054c8634030dcc33e1bf41e2",
+      "sha256": "ba1b913d30abeb4b7ca52901f4038179cd6a6afd613028472cb5c1f539f4a47d",
       "mode": "file",
       "owner": "core"
     },
     {
       "path": ".agents/skills/tr-route-switch/SKILL.md",
-      "sha256": "124cee022129cc25c3522e5aff190a27c30ee9f3147690480c1950350aa51c26",
+      "sha256": "de4c2dac9e448a3fdc7a2956e2c68cf8d6a39da3cd56e2ca7b64355972904fd4",
       "mode": "file",
       "owner": "core"
     },
@@ -135,8 +201,32 @@
       "owner": "core"
     },
     {
+      "path": ".agents/skills/writing-for-agents/SKILL-MECHANICS.md",
+      "sha256": "c768e6307c7c10728c401c213f2c4ba71c542127eeb7ad2956aabd15a0fa0059",
+      "mode": "file",
+      "owner": "mattpocock-skills"
+    },
+    {
+      "path": ".agents/skills/writing-for-agents/SKILL.md",
+      "sha256": "551adca942227b44192edba88acd4e8db911f0121ce58ad16944ccf6a896a74a",
+      "mode": "file",
+      "owner": "mattpocock-skills"
+    },
+    {
+      "path": ".agents/skills/writing-for-agents/agents/openai.yaml",
+      "sha256": "eacb24b2a618cfb81dacb0416f4fdd75ddf3a8060f8ddb99aae1b1e301907e4b",
+      "mode": "file",
+      "owner": "mattpocock-skills"
+    },
+    {
+      "path": ".claude/agents/tr-builder.md",
+      "sha256": "1f36434d6f832bb8425f563b6937fddb3ec0b450dba2de825b49e4a6c61500f3",
+      "mode": "file",
+      "owner": "core"
+    },
+    {
       "path": ".claude/agents/tr-correctness.md",
-      "sha256": "df6bc6d272675e62d8dab40c8bbee2235d67c9f031c2fb24cc9e68a02116dc7d",
+      "sha256": "3232ad6f19d5fb89fd78e0d296c1edb793e2881f8c683948b98d6bf34f9ac510",
       "mode": "file",
       "owner": "core"
     },
@@ -154,25 +244,31 @@
     },
     {
       "path": ".claude/commands/tr/onboard.md",
-      "sha256": "c628d6cd082f19b52d11cebf09a04cedd548207a2fc0c4c3ba08ce8c8e62df24",
+      "sha256": "c400b08de79640dcaec939af06c47dcb2f278173eeb2db88bb44aa2d228929aa",
       "mode": "file",
       "owner": "core"
     },
     {
       "path": ".claude/commands/tr/start.md",
-      "sha256": "80d776e1bc4a3a8698fd86d15c7f98faf7dc0c37aeac476d4d626b4d08b96f65",
+      "sha256": "b3865b4f220696a339a110998ed38581a3f002584e1ed7d05ae0b9ee89df6230",
       "mode": "file",
       "owner": "core"
     },
     {
       "path": ".claude/hooks/trellis-hook.cjs",
-      "sha256": "f90d788e832845d026cddf6bade4ecd63408af7614ca883a95f8b31273c266b1",
+      "sha256": "080ba31210225f359fa4a7ca76fb2941eaad82d85dd67332bcb92efdd4769c54",
       "mode": "file",
       "owner": "core"
     },
     {
+      "path": ".claude/rules/tr-acceptance.md",
+      "sha256": "4e77df401928c9e5a8a4a94c48e25f83666d43d830544d56a32c604cb427a83a",
+      "mode": "file",
+      "owner": "acceptance"
+    },
+    {
       "path": ".claude/workflows/tr-ship.js",
-      "sha256": "94e3c17440cf05027f55164bce52c0b3d2327d43ece9660d9f67cbd051b86aa9",
+      "sha256": "52a6912e6d11605001869761e1fa7e03f6cfaaa875000759737628f1a4a0ca6a",
       "mode": "file",
       "owner": "core"
     },
@@ -190,7 +286,7 @@
     },
     {
       "path": ".github/tr-guard.cjs",
-      "sha256": "69a66c1a6e39a7cd538b4ba74591bd72a5a60707ee8b3cb8677ee97a2a13922f",
+      "sha256": "6c951ffb4b32134adaa1aa80929ef867b566ef3734c5a3883add47903d50c816",
       "mode": "file",
       "owner": "core"
     },
@@ -202,7 +298,7 @@
     },
     {
       "path": ".github/workflows/trellis.yml",
-      "sha256": "fada80bd4b759458d1cba13e2d22efa39e3a6298bc6a842fd9639af3ed16a7ed",
+      "sha256": "cb387949d7ad4e9868d3903d0f08696ceff2f389224510be6560b45e3ee44495",
       "mode": "file",
       "owner": "core"
     },
@@ -241,12 +337,59 @@
       "marker": "trellis-claude"
     }
   ],
-  "outside": [],
+  "outside": [
+    {
+      "path": "~/.trellis-flow/bin/tr-gitleaks.toml",
+      "sha256": "1eb56fe74c39ac770e3bc661e528bea7d5fba29549ec147f03793a520e654506"
+    },
+    {
+      "path": "~/.trellis-flow/bin/tr-lib.sh",
+      "sha256": "f4d96ced23802a7a9a97f0d94a1e5be142b75d657b108e5a9829bc5f031101ac"
+    },
+    {
+      "path": "~/.trellis-flow/bin/tr-packs",
+      "sha256": "c1ca035e1d45d27947bcb7dfd9ca09ddb4c883b4e51188c5eac4c17db9ac143e"
+    },
+    {
+      "path": "~/.trellis-flow/bin/tr-pr",
+      "sha256": "995b7893481478856b06197ce3afff066264e892db8ce0f65f2158c1ca3b09cf"
+    },
+    {
+      "path": "~/.trellis-flow/bin/tr-push",
+      "sha256": "fb49fa30eee732e530fcfa3c6d813b8ecd8f819ee7dbf81f201a704d8df99897"
+    },
+    {
+      "path": "~/.trellis-flow/bin/tr-sync",
+      "sha256": "c26a7c08dbb2de5413673156acf2d59874f78de2f628f282f9a3009e27968722"
+    },
+    {
+      "path": "~/.trellis-flow/bin/trellis-hook.cjs",
+      "sha256": "080ba31210225f359fa4a7ca76fb2941eaad82d85dd67332bcb92efdd4769c54"
+    },
+    {
+      "path": "~/.trellis-flow/bot/bd33f496c9b2/git-credential-helper",
+      "sha256": "6ea2f9e1c193e795155121268be35b496165d45a52672b465eef3f1ac32a281e"
+    },
+    {
+      "path": "~/.trellis-flow/bot/bd33f496c9b2/ruleset.json",
+      "sha256": "ec633e2d7ff666f8d7af03f72c0ad04753f2683f0ab83e2b11b4664d99d6b964"
+    },
+    {
+      "path": "~/.trellis-flow/bot/bd33f496c9b2/security.json",
+      "sha256": "b4ca4b371e9d225209703217fd19686e457fb1f827b6ea21a82d4611de4d7e17"
+    }
+  ],
   "vendor": [
     {
       "name": "agent-skills",
       "commit": "aeac41d4d005999432bb7312f7ff06383a91d59d",
       "sha256": "f32406391c1b66c134cc4641a3a275a08385c3a64e8b3f11b9d7186650d494ab",
+      "license": "MIT"
+    },
+    {
+      "name": "mattpocock-skills",
+      "commit": "5beb35b040e3de97e54fa9e386d7e42d15c295c2",
+      "sha256": "43ff0fcbdc2c71a3eb06bb95823d679fd70811a59ec6f463eeb5444e8d8c5910",
       "license": "MIT"
     }
   ],
@@ -1066,10 +1209,131 @@
         "permissions",
         "allow",
         "mcp__spectex__spectex_trace_symbol"
+      ],
+      [
+        "sandbox",
+        "network",
+        "allowLocalBinding"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Read(~/.azure/**)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Read(~/.pypirc)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Read(~/.claude.json)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Read(~/**/key.properties)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Read(~/Library/Application Support/dart/pub-credentials.json)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Read(~/Library/Application Support/dart/pub-tokens.json)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Read(~/.config/configstore/**)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Read(~/.appstoreconnect/**)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Read(~/.gradle/gradle.properties)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Read(~/.zsh_history)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Read(~/.bash_history)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Read(~/.claude/.credentials.json)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Read(~/.cargo/credentials.toml)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Read(~/.vault-token)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Read(~/.terraform.d/**)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Read(~/Library/Keychains/**)"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Read(~/.config/spectex/**)"
+      ],
+      [
+        "env",
+        "ARCHIFY_UPDATE_CHECK_DISABLED"
       ]
     ],
-    "local": [],
-    "user": [
+    "local": [
+      [
+        "claudeMdExcludes",
+        "/Users/danhtrinh/.claude/rules/README.md"
+      ],
+      [
+        "claudeMdExcludes",
+        "/Users/danhtrinh/.claude/rules/common/agents.md"
+      ],
+      [
+        "claudeMdExcludes",
+        "/Users/danhtrinh/.claude/rules/common/code-review.md"
+      ],
+      [
+        "claudeMdExcludes",
+        "/Users/danhtrinh/.claude/rules/common/development-workflow.md"
+      ],
+      [
+        "claudeMdExcludes",
+        "/Users/danhtrinh/.claude/rules/common/hooks.md"
+      ],
+      [
+        "claudeMdExcludes",
+        "/Users/danhtrinh/.claude/rules/common/performance.md"
+      ],
+      [
+        "claudeMdExcludes",
+        "/Users/danhtrinh/.claude/rules/common/testing.md"
+      ],
       [
         "hooks",
         "PreToolUse",
@@ -1077,35 +1341,225 @@
       ],
       [
         "sandbox",
-        "excludedCommands",
-        "/Users/danhtrinh/.trellis-flow/bin/tr-push"
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/.ssh/**"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/.aws/**"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/.gnupg/**"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/.config/gh/**"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/.config/gcloud/**"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/.azure/**"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/.kube/**"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/.docker/config.json"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/.netrc"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/.git-credentials"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/.npmrc"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/.pypirc"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/.trellis-flow/bot/**"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/.claude.json"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/**/.env"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/**/.env.*"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/**/key.properties"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/Library/Application Support/dart/pub-credentials.json"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/Library/Application Support/dart/pub-tokens.json"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/.config/configstore/**"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/.appstoreconnect/**"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/.gradle/gradle.properties"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/.zsh_history"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/.bash_history"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/.claude/.credentials.json"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/.cargo/credentials.toml"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/.vault-token"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/.terraform.d/**"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/Library/Keychains/**"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyRead",
+        "/Users/danhtrinh/.config/spectex/**"
+      ],
+      [
+        "sandbox",
+        "filesystem",
+        "denyWrite",
+        "/Users/danhtrinh/.trellis-mirrors/**"
       ],
       [
         "sandbox",
         "excludedCommands",
-        "/Users/danhtrinh/.trellis-flow/bin/tr-pr"
+        "/Users/danhtrinh/.trellis-flow/bin/tr-packs"
       ],
       [
         "sandbox",
         "excludedCommands",
-        "/Users/danhtrinh/.trellis-flow/bin/tr-pr --draft"
+        "/Users/danhtrinh/.trellis-flow/bin/tr-sync"
+      ],
+      [
+        "permissions",
+        "deny",
+        "Edit(//Users/danhtrinh/.trellis-mirrors/**)"
       ],
       [
         "permissions",
         "ask",
-        "Bash(/Users/danhtrinh/.trellis-flow/bin/tr-push)"
+        "Bash(/Users/danhtrinh/.trellis-flow/bin/tr-packs)"
       ],
       [
         "permissions",
         "ask",
-        "Bash(/Users/danhtrinh/.trellis-flow/bin/tr-pr)"
+        "Bash(/Users/danhtrinh/.trellis-flow/bin/tr-sync)"
       ],
       [
-        "permissions",
-        "ask",
-        "Bash(/Users/danhtrinh/.trellis-flow/bin/tr-pr --draft)"
+        "enabledPlugins",
+        "superpowers@claude-plugins-official"
+      ],
+      [
+        "enabledPlugins",
+        "superpowers@superpowers-dev"
       ]
     ],
+    "user": [],
     "mcp": [
       [
         "mcpServers",
@@ -1155,6 +1609,7 @@
   },
   "packs": [
     "core",
+    "acceptance",
     "docs",
     "tracker"
   ],

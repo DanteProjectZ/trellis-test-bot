@@ -5,6 +5,7 @@ target_branch: main
 layout: docs
 packs:
   - core
+  - acceptance
   - docs
   - tracker
 stacks: []

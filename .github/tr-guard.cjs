@@ -56,24 +56,24 @@ var require_ucs2length = __commonJS({
 var require_constraints_v2 = __commonJS({
   "src/schema/generated/constraints.v2.cjs"(exports2, module2) {
     "use strict";
-    module2.exports = validate50;
-    module2.exports.default = validate50;
-    var schema73 = { "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "constraints.v2.json", "title": "One `yaml trellis-constraints` block of CONSTRAINTS.md, v3 (K3a)", "type": "object", "additionalProperties": false, "required": ["schemaVersion", "root", "install", "checks", "test_files", "test_globs"], "properties": { "schemaVersion": { "const": 2 }, "root": { "type": "string", "pattern": "^(\\.|(?!-)(?![A-Za-z]:)(?!(?:[^/]*/)*\\.{1,2}(?:/|$))(?!(?:[^/]*/)*\\.[gG][iI][tT](?:/|$))[^/:\\\\\\p{Cc}\\p{Cf}\\p{Zl}\\p{Zp}]+(/[^/:\\\\\\p{Cc}\\p{Cf}\\p{Zl}\\p{Zp}]+)*)$" }, "adapter": { "type": ["string", "null"], "pattern": "^[a-z][a-z0-9_-]{0,47}$" }, "variant": { "type": ["string", "null"], "pattern": "^[a-z0-9][a-z0-9_.-]{0,47}$" }, "install": { "type": ["string", "null"], "minLength": 1, "maxLength": 1e3 }, "checks": { "type": "object", "propertyNames": { "pattern": "^[a-z][a-z0-9-]{0,31}$" }, "additionalProperties": { "type": "string", "minLength": 1, "maxLength": 1e3 } }, "test_files": { "type": ["string", "null"], "minLength": 1, "maxLength": 1e3 }, "test_globs": { "type": "array", "items": { "type": "string", "pattern": "^(?!/)(?!-)(?![A-Za-z]:)(?!(?:[^/]*/)*\\.{1,2}(?:/|$))[^\\\\\\p{Cc}\\p{Cf}\\p{Zl}\\p{Zp}]{1,256}$" } }, "env_pass": { "type": "array", "maxItems": 32, "items": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]{0,63}$" } }, "network_allow": { "type": "array", "items": { "$ref": "defs.v1.json#/$defs/host" } }, "sensitive_paths": { "type": "array", "items": { "$ref": "defs.v1.json#/$defs/glob" } }, "e2e": { "type": ["object", "null"], "additionalProperties": false, "required": ["command", "ci"], "properties": { "command": { "type": "string", "minLength": 1, "maxLength": 1e3 }, "ci": { "type": "boolean" } } } } };
+    module2.exports = validate52;
+    module2.exports.default = validate52;
+    var schema76 = { "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "constraints.v2.json", "title": "One `yaml trellis-constraints` block of CONSTRAINTS.md, v3 (K3a)", "type": "object", "additionalProperties": false, "required": ["schemaVersion", "root", "install", "checks", "test_files", "test_globs"], "properties": { "schemaVersion": { "const": 2 }, "root": { "type": "string", "pattern": "^(\\.|(?!-)(?![A-Za-z]:)(?!(?:[^/]*/)*\\.{1,2}(?:/|$))(?!(?:[^/]*/)*\\.[gG][iI][tT](?:/|$))[^/:\\\\\\p{Cc}\\p{Cf}\\p{Zl}\\p{Zp}]+(/[^/:\\\\\\p{Cc}\\p{Cf}\\p{Zl}\\p{Zp}]+)*)$" }, "adapter": { "type": ["string", "null"], "pattern": "^[a-z][a-z0-9_-]{0,47}$" }, "variant": { "type": ["string", "null"], "pattern": "^[a-z0-9][a-z0-9_.-]{0,47}$" }, "install": { "type": ["string", "null"], "minLength": 1, "maxLength": 1e3 }, "checks": { "type": "object", "propertyNames": { "pattern": "^[a-z][a-z0-9-]{0,31}$" }, "additionalProperties": { "type": "string", "minLength": 1, "maxLength": 1e3 } }, "test_files": { "type": ["string", "null"], "minLength": 1, "maxLength": 1e3 }, "test_globs": { "type": "array", "items": { "type": "string", "pattern": "^(?!/)(?!-)(?![A-Za-z]:)(?!(?:[^/]*/)*\\.{1,2}(?:/|$))[^\\\\\\p{Cc}\\p{Cf}\\p{Zl}\\p{Zp}]{1,256}$" } }, "env_pass": { "type": "array", "maxItems": 32, "items": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]{0,63}$" } }, "network_allow": { "type": "array", "items": { "$ref": "defs.v1.json#/$defs/host" } }, "sensitive_paths": { "type": "array", "items": { "$ref": "defs.v1.json#/$defs/glob" } }, "e2e": { "type": ["object", "null"], "additionalProperties": false, "required": ["command", "ci"], "properties": { "command": { "type": "string", "minLength": 1, "maxLength": 1e3 }, "ci": { "type": "boolean" } } } } };
     var func1 = Object.prototype.hasOwnProperty;
     var func2 = require_ucs2length().default;
-    var pattern36 = new RegExp("^(\\.|(?!-)(?![A-Za-z]:)(?!(?:[^/]*/)*\\.{1,2}(?:/|$))(?!(?:[^/]*/)*\\.[gG][iI][tT](?:/|$))[^/:\\\\\\p{Cc}\\p{Cf}\\p{Zl}\\p{Zp}]+(/[^/:\\\\\\p{Cc}\\p{Cf}\\p{Zl}\\p{Zp}]+)*)$", "u");
-    var pattern23 = new RegExp("^[a-z][a-z0-9_-]{0,47}$", "u");
-    var pattern38 = new RegExp("^[a-z0-9][a-z0-9_.-]{0,47}$", "u");
+    var pattern40 = new RegExp("^(\\.|(?!-)(?![A-Za-z]:)(?!(?:[^/]*/)*\\.{1,2}(?:/|$))(?!(?:[^/]*/)*\\.[gG][iI][tT](?:/|$))[^/:\\\\\\p{Cc}\\p{Cf}\\p{Zl}\\p{Zp}]+(/[^/:\\\\\\p{Cc}\\p{Cf}\\p{Zl}\\p{Zp}]+)*)$", "u");
+    var pattern27 = new RegExp("^[a-z][a-z0-9_-]{0,47}$", "u");
+    var pattern42 = new RegExp("^[a-z0-9][a-z0-9_.-]{0,47}$", "u");
     var pattern4 = new RegExp("^[a-z][a-z0-9-]{0,31}$", "u");
-    var pattern40 = new RegExp("^(?!/)(?!-)(?![A-Za-z]:)(?!(?:[^/]*/)*\\.{1,2}(?:/|$))[^\\\\\\p{Cc}\\p{Cf}\\p{Zl}\\p{Zp}]{1,256}$", "u");
-    var pattern41 = new RegExp("^[A-Z][A-Z0-9_]{0,63}$", "u");
-    var pattern27 = new RegExp("^(?![0-9.]+$)((\\*\\.)?[A-Za-z0-9]([A-Za-z0-9-]{0,62})(\\.[A-Za-z0-9]([A-Za-z0-9-]{0,62}))+|[A-Za-z0-9]([A-Za-z0-9-]{0,62}))$", "u");
-    var pattern26 = new RegExp("^(?!/)(?!-)(?!!)(?![A-Za-z]:)(?!(?:[^/]*/)*\\.{1,2}(?:/|$))[^\\\\\\p{Cc}\\p{Cf}\\p{Zl}\\p{Zp}]{1,256}$", "u");
-    function validate50(data, { instancePath = "", parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
+    var pattern44 = new RegExp("^(?!/)(?!-)(?![A-Za-z]:)(?!(?:[^/]*/)*\\.{1,2}(?:/|$))[^\\\\\\p{Cc}\\p{Cf}\\p{Zl}\\p{Zp}]{1,256}$", "u");
+    var pattern45 = new RegExp("^[A-Z][A-Z0-9_]{0,63}$", "u");
+    var pattern31 = new RegExp("^(?![0-9.]+$)((\\*\\.)?[A-Za-z0-9]([A-Za-z0-9-]{0,62})(\\.[A-Za-z0-9]([A-Za-z0-9-]{0,62}))+|[A-Za-z0-9]([A-Za-z0-9-]{0,62}))$", "u");
+    var pattern30 = new RegExp("^(?!/)(?!-)(?!!)(?![A-Za-z]:)(?!(?:[^/]*/)*\\.{1,2}(?:/|$))[^\\\\\\p{Cc}\\p{Cf}\\p{Zl}\\p{Zp}]{1,256}$", "u");
+    function validate52(data, { instancePath = "", parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
       ;
       let vErrors = null;
       let errors = 0;
-      const evaluated0 = validate50.evaluated;
+      const evaluated0 = validate52.evaluated;
       if (evaluated0.dynamicProps) {
         evaluated0.props = void 0;
       }
@@ -136,7 +136,7 @@ var require_constraints_v2 = __commonJS({
           errors++;
         }
         for (const key0 in data) {
-          if (!func1.call(schema73.properties, key0)) {
+          if (!func1.call(schema76.properties, key0)) {
             const err6 = { instancePath, schemaPath: "#/additionalProperties", keyword: "additionalProperties", params: { additionalProperty: key0 }, message: "must NOT have additional properties" };
             if (vErrors === null) {
               vErrors = [err6];
@@ -160,7 +160,7 @@ var require_constraints_v2 = __commonJS({
         if (data.root !== void 0) {
           let data1 = data.root;
           if (typeof data1 === "string") {
-            if (!pattern36.test(data1)) {
+            if (!pattern40.test(data1)) {
               const err8 = { instancePath: instancePath + "/root", schemaPath: "#/properties/root/pattern", keyword: "pattern", params: { pattern: "^(\\.|(?!-)(?![A-Za-z]:)(?!(?:[^/]*/)*\\.{1,2}(?:/|$))(?!(?:[^/]*/)*\\.[gG][iI][tT](?:/|$))[^/:\\\\\\p{Cc}\\p{Cf}\\p{Zl}\\p{Zp}]+(/[^/:\\\\\\p{Cc}\\p{Cf}\\p{Zl}\\p{Zp}]+)*)$" }, message: 'must match pattern "^(\\.|(?!-)(?![A-Za-z]:)(?!(?:[^/]*/)*\\.{1,2}(?:/|$))(?!(?:[^/]*/)*\\.[gG][iI][tT](?:/|$))[^/:\\\\\\p{Cc}\\p{Cf}\\p{Zl}\\p{Zp}]+(/[^/:\\\\\\p{Cc}\\p{Cf}\\p{Zl}\\p{Zp}]+)*)$"' };
               if (vErrors === null) {
                 vErrors = [err8];
@@ -182,7 +182,7 @@ var require_constraints_v2 = __commonJS({
         if (data.adapter !== void 0) {
           let data2 = data.adapter;
           if (typeof data2 !== "string" && data2 !== null) {
-            const err10 = { instancePath: instancePath + "/adapter", schemaPath: "#/properties/adapter/type", keyword: "type", params: { type: schema73.properties.adapter.type }, message: "must be string,null" };
+            const err10 = { instancePath: instancePath + "/adapter", schemaPath: "#/properties/adapter/type", keyword: "type", params: { type: schema76.properties.adapter.type }, message: "must be string,null" };
             if (vErrors === null) {
               vErrors = [err10];
             } else {
@@ -191,7 +191,7 @@ var require_constraints_v2 = __commonJS({
             errors++;
           }
           if (typeof data2 === "string") {
-            if (!pattern23.test(data2)) {
+            if (!pattern27.test(data2)) {
               const err11 = { instancePath: instancePath + "/adapter", schemaPath: "#/properties/adapter/pattern", keyword: "pattern", params: { pattern: "^[a-z][a-z0-9_-]{0,47}$" }, message: 'must match pattern "^[a-z][a-z0-9_-]{0,47}$"' };
               if (vErrors === null) {
                 vErrors = [err11];
@@ -205,7 +205,7 @@ var require_constraints_v2 = __commonJS({
         if (data.variant !== void 0) {
           let data3 = data.variant;
           if (typeof data3 !== "string" && data3 !== null) {
-            const err12 = { instancePath: instancePath + "/variant", schemaPath: "#/properties/variant/type", keyword: "type", params: { type: schema73.properties.variant.type }, message: "must be string,null" };
+            const err12 = { instancePath: instancePath + "/variant", schemaPath: "#/properties/variant/type", keyword: "type", params: { type: schema76.properties.variant.type }, message: "must be string,null" };
             if (vErrors === null) {
               vErrors = [err12];
             } else {
@@ -214,7 +214,7 @@ var require_constraints_v2 = __commonJS({
             errors++;
           }
           if (typeof data3 === "string") {
-            if (!pattern38.test(data3)) {
+            if (!pattern42.test(data3)) {
               const err13 = { instancePath: instancePath + "/variant", schemaPath: "#/properties/variant/pattern", keyword: "pattern", params: { pattern: "^[a-z0-9][a-z0-9_.-]{0,47}$" }, message: 'must match pattern "^[a-z0-9][a-z0-9_.-]{0,47}$"' };
               if (vErrors === null) {
                 vErrors = [err13];
@@ -228,7 +228,7 @@ var require_constraints_v2 = __commonJS({
         if (data.install !== void 0) {
           let data4 = data.install;
           if (typeof data4 !== "string" && data4 !== null) {
-            const err14 = { instancePath: instancePath + "/install", schemaPath: "#/properties/install/type", keyword: "type", params: { type: schema73.properties.install.type }, message: "must be string,null" };
+            const err14 = { instancePath: instancePath + "/install", schemaPath: "#/properties/install/type", keyword: "type", params: { type: schema76.properties.install.type }, message: "must be string,null" };
             if (vErrors === null) {
               vErrors = [err14];
             } else {
@@ -328,7 +328,7 @@ var require_constraints_v2 = __commonJS({
         if (data.test_files !== void 0) {
           let data7 = data.test_files;
           if (typeof data7 !== "string" && data7 !== null) {
-            const err23 = { instancePath: instancePath + "/test_files", schemaPath: "#/properties/test_files/type", keyword: "type", params: { type: schema73.properties.test_files.type }, message: "must be string,null" };
+            const err23 = { instancePath: instancePath + "/test_files", schemaPath: "#/properties/test_files/type", keyword: "type", params: { type: schema76.properties.test_files.type }, message: "must be string,null" };
             if (vErrors === null) {
               vErrors = [err23];
             } else {
@@ -364,7 +364,7 @@ var require_constraints_v2 = __commonJS({
             for (let i0 = 0; i0 < len0; i0++) {
               let data9 = data8[i0];
               if (typeof data9 === "string") {
-                if (!pattern40.test(data9)) {
+                if (!pattern44.test(data9)) {
                   const err26 = { instancePath: instancePath + "/test_globs/" + i0, schemaPath: "#/properties/test_globs/items/pattern", keyword: "pattern", params: { pattern: "^(?!/)(?!-)(?![A-Za-z]:)(?!(?:[^/]*/)*\\.{1,2}(?:/|$))[^\\\\\\p{Cc}\\p{Cf}\\p{Zl}\\p{Zp}]{1,256}$" }, message: 'must match pattern "^(?!/)(?!-)(?![A-Za-z]:)(?!(?:[^/]*/)*\\.{1,2}(?:/|$))[^\\\\\\p{Cc}\\p{Cf}\\p{Zl}\\p{Zp}]{1,256}$"' };
                   if (vErrors === null) {
                     vErrors = [err26];
@@ -409,7 +409,7 @@ var require_constraints_v2 = __commonJS({
             for (let i1 = 0; i1 < len1; i1++) {
               let data11 = data10[i1];
               if (typeof data11 === "string") {
-                if (!pattern41.test(data11)) {
+                if (!pattern45.test(data11)) {
                   const err30 = { instancePath: instancePath + "/env_pass/" + i1, schemaPath: "#/properties/env_pass/items/pattern", keyword: "pattern", params: { pattern: "^[A-Z][A-Z0-9_]{0,63}$" }, message: 'must match pattern "^[A-Z][A-Z0-9_]{0,63}$"' };
                   if (vErrors === null) {
                     vErrors = [err30];
@@ -445,7 +445,7 @@ var require_constraints_v2 = __commonJS({
             for (let i2 = 0; i2 < len2; i2++) {
               let data13 = data12[i2];
               if (typeof data13 === "string") {
-                if (!pattern27.test(data13)) {
+                if (!pattern31.test(data13)) {
                   const err33 = { instancePath: instancePath + "/network_allow/" + i2, schemaPath: "defs.v1.json#/$defs/host/pattern", keyword: "pattern", params: { pattern: "^(?![0-9.]+$)((\\*\\.)?[A-Za-z0-9]([A-Za-z0-9-]{0,62})(\\.[A-Za-z0-9]([A-Za-z0-9-]{0,62}))+|[A-Za-z0-9]([A-Za-z0-9-]{0,62}))$" }, message: 'must match pattern "^(?![0-9.]+$)((\\*\\.)?[A-Za-z0-9]([A-Za-z0-9-]{0,62})(\\.[A-Za-z0-9]([A-Za-z0-9-]{0,62}))+|[A-Za-z0-9]([A-Za-z0-9-]{0,62}))$"' };
                   if (vErrors === null) {
                     vErrors = [err33];
@@ -481,7 +481,7 @@ var require_constraints_v2 = __commonJS({
             for (let i3 = 0; i3 < len3; i3++) {
               let data15 = data14[i3];
               if (typeof data15 === "string") {
-                if (!pattern26.test(data15)) {
+                if (!pattern30.test(data15)) {
                   const err36 = { instancePath: instancePath + "/sensitive_paths/" + i3, schemaPath: "defs.v1.json#/$defs/glob/pattern", keyword: "pattern", params: { pattern: "^(?!/)(?!-)(?!!)(?![A-Za-z]:)(?!(?:[^/]*/)*\\.{1,2}(?:/|$))[^\\\\\\p{Cc}\\p{Cf}\\p{Zl}\\p{Zp}]{1,256}$" }, message: 'must match pattern "^(?!/)(?!-)(?!!)(?![A-Za-z]:)(?!(?:[^/]*/)*\\.{1,2}(?:/|$))[^\\\\\\p{Cc}\\p{Cf}\\p{Zl}\\p{Zp}]{1,256}$"' };
                   if (vErrors === null) {
                     vErrors = [err36];
@@ -513,7 +513,7 @@ var require_constraints_v2 = __commonJS({
         if (data.e2e !== void 0) {
           let data16 = data.e2e;
           if (!(data16 && typeof data16 == "object" && !Array.isArray(data16)) && data16 !== null) {
-            const err39 = { instancePath: instancePath + "/e2e", schemaPath: "#/properties/e2e/type", keyword: "type", params: { type: schema73.properties.e2e.type }, message: "must be object,null" };
+            const err39 = { instancePath: instancePath + "/e2e", schemaPath: "#/properties/e2e/type", keyword: "type", params: { type: schema76.properties.e2e.type }, message: "must be object,null" };
             if (vErrors === null) {
               vErrors = [err39];
             } else {
@@ -604,10 +604,10 @@ var require_constraints_v2 = __commonJS({
         }
         errors++;
       }
-      validate50.errors = vErrors;
+      validate52.errors = vErrors;
       return errors === 0;
     }
-    validate50.evaluated = { "props": true, "dynamicProps": false, "dynamicItems": false };
+    validate52.evaluated = { "props": true, "dynamicProps": false, "dynamicItems": false };
   }
 });
 
@@ -661,15 +661,15 @@ var require_equal = __commonJS({
 var require_guard_rules_v1 = __commonJS({
   "src/schema/generated/guard-rules.v1.cjs"(exports2, module2) {
     "use strict";
-    module2.exports = validate51;
-    module2.exports.default = validate51;
-    var schema76 = { "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "guard-rules.v1.json", "title": ".github/tr-guard.json (K3a)", "type": "object", "additionalProperties": false, "required": ["schemaVersion", "protected", "sensitive", "bigDiff", "routeCeilings", "labels", "redGreen", "acTrace"], "$defs": { "ceiling": { "type": "object", "additionalProperties": false, "required": ["files", "lines"], "properties": { "files": { "type": "integer", "minimum": 1 }, "lines": { "type": "integer", "minimum": 1 } } }, "globs": { "type": "array", "items": { "$ref": "defs.v1.json#/$defs/glob" }, "uniqueItems": true } }, "properties": { "schemaVersion": { "const": 1 }, "protected": { "type": "array", "$ref": "#/$defs/globs", "minItems": 1 }, "sensitive": { "$ref": "#/$defs/globs" }, "bigDiff": { "$ref": "#/$defs/ceiling" }, "routeCeilings": { "type": "object", "additionalProperties": { "$ref": "#/$defs/ceiling" }, "propertyNames": { "pattern": "^[a-z]{2,16}$" } }, "labels": { "type": "object", "additionalProperties": false, "required": ["spike", "pause"], "properties": { "spike": { "type": "string", "minLength": 1, "maxLength": 50 }, "pause": { "type": "string", "minLength": 1, "maxLength": 50 } } }, "redGreen": { "enum": ["on", "off"] }, "acTrace": { "type": "boolean" } } };
-    var pattern26 = new RegExp("^(?!/)(?!-)(?!!)(?![A-Za-z]:)(?!(?:[^/]*/)*\\.{1,2}(?:/|$))[^\\\\\\p{Cc}\\p{Cf}\\p{Zl}\\p{Zp}]{1,256}$", "u");
+    module2.exports = validate53;
+    module2.exports.default = validate53;
+    var schema79 = { "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "guard-rules.v1.json", "title": ".github/tr-guard.json (K3a)", "type": "object", "additionalProperties": false, "required": ["schemaVersion", "protected", "sensitive", "bigDiff", "routeCeilings", "labels", "redGreen", "acTrace"], "$defs": { "ceiling": { "type": "object", "additionalProperties": false, "required": ["files", "lines"], "properties": { "files": { "type": "integer", "minimum": 1 }, "lines": { "type": "integer", "minimum": 1 } } }, "globs": { "type": "array", "items": { "$ref": "defs.v1.json#/$defs/glob" }, "uniqueItems": true } }, "properties": { "schemaVersion": { "const": 1 }, "protected": { "type": "array", "$ref": "#/$defs/globs", "minItems": 1 }, "sensitive": { "$ref": "#/$defs/globs" }, "bigDiff": { "$ref": "#/$defs/ceiling" }, "routeCeilings": { "type": "object", "additionalProperties": { "$ref": "#/$defs/ceiling" }, "propertyNames": { "pattern": "^[a-z]{2,16}$" } }, "labels": { "type": "object", "additionalProperties": false, "required": ["spike", "pause"], "properties": { "spike": { "type": "string", "minLength": 1, "maxLength": 50 }, "pause": { "type": "string", "minLength": 1, "maxLength": 50 } } }, "redGreen": { "enum": ["on", "off"] }, "acTrace": { "type": "boolean" } } };
+    var pattern30 = new RegExp("^(?!/)(?!-)(?!!)(?![A-Za-z]:)(?!(?:[^/]*/)*\\.{1,2}(?:/|$))[^\\\\\\p{Cc}\\p{Cf}\\p{Zl}\\p{Zp}]{1,256}$", "u");
     var func0 = require_equal().default;
-    function validate52(data, { instancePath = "", parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
+    function validate54(data, { instancePath = "", parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
       let vErrors = null;
       let errors = 0;
-      const evaluated0 = validate52.evaluated;
+      const evaluated0 = validate54.evaluated;
       if (evaluated0.dynamicProps) {
         evaluated0.props = void 0;
       }
@@ -681,7 +681,7 @@ var require_guard_rules_v1 = __commonJS({
         for (let i0 = 0; i0 < len0; i0++) {
           let data0 = data[i0];
           if (typeof data0 === "string") {
-            if (!pattern26.test(data0)) {
+            if (!pattern30.test(data0)) {
               const err0 = { instancePath: instancePath + "/" + i0, schemaPath: "defs.v1.json#/$defs/glob/pattern", keyword: "pattern", params: { pattern: "^(?!/)(?!-)(?!!)(?![A-Za-z]:)(?!(?:[^/]*/)*\\.{1,2}(?:/|$))[^\\\\\\p{Cc}\\p{Cf}\\p{Zl}\\p{Zp}]{1,256}$" }, message: 'must match pattern "^(?!/)(?!-)(?!!)(?![A-Za-z]:)(?!(?:[^/]*/)*\\.{1,2}(?:/|$))[^\\\\\\p{Cc}\\p{Cf}\\p{Zl}\\p{Zp}]{1,256}$"' };
               if (vErrors === null) {
                 vErrors = [err0];
@@ -727,17 +727,17 @@ var require_guard_rules_v1 = __commonJS({
         }
         errors++;
       }
-      validate52.errors = vErrors;
+      validate54.errors = vErrors;
       return errors === 0;
     }
-    validate52.evaluated = { "items": true, "dynamicProps": false, "dynamicItems": false };
-    var pattern45 = new RegExp("^[a-z]{2,16}$", "u");
+    validate54.evaluated = { "items": true, "dynamicProps": false, "dynamicItems": false };
+    var pattern49 = new RegExp("^[a-z]{2,16}$", "u");
     var func2 = require_ucs2length().default;
-    function validate51(data, { instancePath = "", parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
+    function validate53(data, { instancePath = "", parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {}) {
       ;
       let vErrors = null;
       let errors = 0;
-      const evaluated0 = validate51.evaluated;
+      const evaluated0 = validate53.evaluated;
       if (evaluated0.dynamicProps) {
         evaluated0.props = void 0;
       }
@@ -841,8 +841,8 @@ var require_guard_rules_v1 = __commonJS({
         }
         if (data.protected !== void 0) {
           let data1 = data.protected;
-          if (!validate52(data1, { instancePath: instancePath + "/protected", parentData: data, parentDataProperty: "protected", rootData, dynamicAnchors })) {
-            vErrors = vErrors === null ? validate52.errors : vErrors.concat(validate52.errors);
+          if (!validate54(data1, { instancePath: instancePath + "/protected", parentData: data, parentDataProperty: "protected", rootData, dynamicAnchors })) {
+            vErrors = vErrors === null ? validate54.errors : vErrors.concat(validate54.errors);
             errors = vErrors.length;
           }
           if (Array.isArray(data1)) {
@@ -866,8 +866,8 @@ var require_guard_rules_v1 = __commonJS({
           }
         }
         if (data.sensitive !== void 0) {
-          if (!validate52(data.sensitive, { instancePath: instancePath + "/sensitive", parentData: data, parentDataProperty: "sensitive", rootData, dynamicAnchors })) {
-            vErrors = vErrors === null ? validate52.errors : vErrors.concat(validate52.errors);
+          if (!validate54(data.sensitive, { instancePath: instancePath + "/sensitive", parentData: data, parentDataProperty: "sensitive", rootData, dynamicAnchors })) {
+            vErrors = vErrors === null ? validate54.errors : vErrors.concat(validate54.errors);
             errors = vErrors.length;
           }
         }
@@ -965,7 +965,7 @@ var require_guard_rules_v1 = __commonJS({
             for (const key2 in data6) {
               const _errs16 = errors;
               if (typeof key2 === "string") {
-                if (!pattern45.test(key2)) {
+                if (!pattern49.test(key2)) {
                   const err20 = { instancePath: instancePath + "/routeCeilings", schemaPath: "#/properties/routeCeilings/propertyNames/pattern", keyword: "pattern", params: { pattern: "^[a-z]{2,16}$" }, message: 'must match pattern "^[a-z]{2,16}$"', propertyName: key2 };
                   if (vErrors === null) {
                     vErrors = [err20];
@@ -1191,7 +1191,7 @@ var require_guard_rules_v1 = __commonJS({
         if (data.redGreen !== void 0) {
           let data13 = data.redGreen;
           if (!(data13 === "on" || data13 === "off")) {
-            const err41 = { instancePath: instancePath + "/redGreen", schemaPath: "#/properties/redGreen/enum", keyword: "enum", params: { allowedValues: schema76.properties.redGreen.enum }, message: "must be equal to one of the allowed values" };
+            const err41 = { instancePath: instancePath + "/redGreen", schemaPath: "#/properties/redGreen/enum", keyword: "enum", params: { allowedValues: schema79.properties.redGreen.enum }, message: "must be equal to one of the allowed values" };
             if (vErrors === null) {
               vErrors = [err41];
             } else {
@@ -1220,10 +1220,10 @@ var require_guard_rules_v1 = __commonJS({
         }
         errors++;
       }
-      validate51.errors = vErrors;
+      validate53.errors = vErrors;
       return errors === 0;
     }
-    validate51.evaluated = { "props": true, "dynamicProps": false, "dynamicItems": false };
+    validate53.evaluated = { "props": true, "dynamicProps": false, "dynamicItems": false };
   }
 });
 
