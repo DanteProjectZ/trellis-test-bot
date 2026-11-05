@@ -1,8 +1,18 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { countWords } from './wordcount.mjs';
 
 const FENCE = '```';
+const SCRIPT = fileURLToPath(new URL('./wordcount.mjs', import.meta.url));
+
+function runCli(args) {
+  return spawnSync(process.execPath, [SCRIPT, ...args], { encoding: 'utf8' });
+}
 
 test('AC-1: counts plain prose words', () => {
   assert.equal(countWords('Xin chào thế giới'), 4);
@@ -180,4 +190,36 @@ test('AC-7: reference definition is not counted', () => {
 
 test('known limit: tag-like text such as x<y and z>w is removed', () => {
   assert.equal(countWords('if x<y and z>w'), 3);
+});
+
+test('AC-8: CLI prints the count and exits 0', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'wc-'));
+  const file = join(dir, 'doc.md');
+  writeFileSync(file, `# Xin chào\n\n${FENCE}\nskip me\n${FENCE}\nthế giới\n`);
+  const result = runCli([file]);
+  assert.equal(result.status, 0);
+  assert.equal(result.stdout, '4\n');
+  assert.equal(result.stderr, '');
+});
+
+test('AC-9: no argument prints usage and exits 1', () => {
+  const result = runCli([]);
+  assert.equal(result.status, 1);
+  assert.equal(result.stdout, '');
+  assert.match(result.stderr, /^Usage: node scripts\/wordcount\.mjs <file\.md>\n$/);
+});
+
+test('AC-9: two arguments print usage and exit 1', () => {
+  const result = runCli(['a.md', 'b.md']);
+  assert.equal(result.status, 1);
+  assert.equal(result.stdout, '');
+  assert.match(result.stderr, /^Usage: /);
+});
+
+test('AC-9: unreadable file prints an error and exits 1', () => {
+  const missing = join(mkdtempSync(join(tmpdir(), 'wc-')), 'missing.md');
+  const result = runCli([missing]);
+  assert.equal(result.status, 1);
+  assert.equal(result.stdout, '');
+  assert.equal(result.stderr, `wordcount: cannot read ${missing}: ENOENT\n`);
 });

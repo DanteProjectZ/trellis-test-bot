@@ -1,3 +1,25 @@
+// Counts the words of one Markdown file, skipping code.
+//
+// Usage: node scripts/wordcount.mjs <file.md>   (Node >= 20)
+// Prints the count to stdout. Errors go to stderr with exit code 1.
+// Also exports countWords(markdown) for use as a library.
+//
+// Not counted: fenced and indented code blocks, inline code, YAML front
+// matter, link and image URLs, autolinks, HTML tags and comments, and
+// reference definitions. A word is a whitespace-separated token with at
+// least one Unicode letter or digit.
+//
+// Known limits (not full CommonMark):
+// - A 4-space indented list continuation after a blank line counts as code.
+// - Nested brackets in link text and parentheses inside URLs are not handled.
+// - Tag-like text is removed: in "if x<y and z>w", "y and z" is not counted.
+// - An inline code span may match across a paragraph break.
+
+import { readFile } from 'node:fs/promises';
+import { realpathSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+
+const USAGE = 'Usage: node scripts/wordcount.mjs <file.md>';
 const BOM = '﻿';
 const WORD_CHAR = /[\p{L}\p{N}]/u;
 const FENCE_OPEN = /^ {0,3}(`{3,}|~{3,})/;
@@ -79,4 +101,34 @@ export function countWords(markdown) {
   const lines = skipFrontMatter(prepare(markdown).split('\n'));
   const prose = stripInline(proseLines(lines).join('\n'));
   return prose.split(/\s+/).filter((token) => WORD_CHAR.test(token)).length;
+}
+
+async function main(args) {
+  if (args.length !== 1) {
+    process.stderr.write(`${USAGE}\n`);
+    return 1;
+  }
+  const [path] = args;
+  let markdown;
+  try {
+    markdown = await readFile(path, 'utf8');
+  } catch (error) {
+    process.stderr.write(`wordcount: cannot read ${path}: ${error.code ?? error.message}\n`);
+    return 1;
+  }
+  process.stdout.write(`${countWords(markdown)}\n`);
+  return 0;
+}
+
+function isMainModule() {
+  if (!process.argv[1]) return false;
+  try {
+    return realpathSync(process.argv[1]) === fileURLToPath(import.meta.url);
+  } catch {
+    return false;
+  }
+}
+
+if (isMainModule()) {
+  process.exitCode = await main(process.argv.slice(2));
 }
