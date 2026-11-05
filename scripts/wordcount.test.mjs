@@ -33,7 +33,7 @@ test('AC-1: CRLF and LF give the same count', () => {
 });
 
 test('AC-1: leading BOM is ignored', () => {
-  assert.equal(countWords('﻿một hai'), 2);
+  assert.equal(countWords(`${String.fromCharCode(0xfeff)}một hai`), 2);
 });
 
 test('AC-2: backtick fence and its content are skipped', () => {

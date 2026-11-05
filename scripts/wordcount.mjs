@@ -20,7 +20,7 @@ import { realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const USAGE = 'Usage: node scripts/wordcount.mjs <file.md>';
-const BOM = '﻿';
+const BOM = String.fromCharCode(0xfeff);
 const WORD_CHAR = /[\p{L}\p{N}]/u;
 const FENCE_OPEN = /^ {0,3}(`{3,}|~{3,})/;
 const REFERENCE_DEFINITION = /^ {0,3}\[[^\]]+\]:\s*\S+/;
