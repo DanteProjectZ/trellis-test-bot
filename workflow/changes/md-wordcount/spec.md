@@ -58,16 +58,16 @@ Runtime: Node ≥ 20 (ES modules, `node:test`, `\p{…}` regex). Tested on Node 
 
 ## Acceptance criteria
 
-- **AC-1** `countWords` returns the number of words in plain prose. `"Xin chào thế giới"` → `4`, in NFC and in NFD form. An empty string → `0`. CRLF and LF input give the same count. A leading BOM is ignored.
-- **AC-2** Fenced code blocks (```` ``` ```` and `~~~`, 3+ characters, up to 3 leading spaces) are not counted, including the fence lines and the info string. The closing fence must use the same character with at least the same length. An unclosed fence skips to end of file.
-- **AC-3** Inline code spans, with single or multiple backticks, are not counted.
-- **AC-4** A word is a whitespace-separated token with at least one Unicode letter or digit. Tokens like `-`, `#`, `>`, `—`, `|` are not counted. `**đậm**` counts as 1.
-- **AC-5** Indented code blocks (4+ spaces or a tab, starting at a block boundary as defined in Design step 3) are not counted. An indented line that continues a paragraph is counted.
-- **AC-6** Leading YAML front matter is not counted. A `---` that is not on line 1 does not start skipping.
-- **AC-7** For `[text](url)`, `[text](url "title")`, `[text][id]` and `![alt](url)`, only `text` and `alt` count. Autolinks (`<https://…>`, `<a@b.com>`), HTML tags, HTML comments (also multi-line) and reference definitions `[id]: url` are not counted. Removals never join two words (see the examples in Design step 4).
-- **AC-8** `node scripts/wordcount.mjs <file>` prints the count and a newline to stdout and exits with code 0.
-- **AC-9** With zero arguments, two or more arguments, or a file that cannot be read, the CLI prints a one-line error to stderr, prints nothing to stdout, and exits with code 1. The read error reads `wordcount: cannot read <path>: <err.code, or err.message when there is no code>`.
-- **AC-10** The tests are in `scripts/wordcount.test.mjs`, use `node:test` and `node:assert/strict`, and pass with `node --test scripts/wordcount.test.mjs`.
+- **AC-1** `countWords` returns the number of words in plain prose. `"Xin chào thế giới"` → `4`, in NFC and in NFD form. An empty string → `0`. CRLF and LF input give the same count. A leading BOM is ignored. (evidence: scripts/wordcount.test.mjs)
+- **AC-2** Fenced code blocks (```` ``` ```` and `~~~`, 3+ characters, up to 3 leading spaces) are not counted, including the fence lines and the info string. The closing fence must use the same character with at least the same length. An unclosed fence skips to end of file. (evidence: scripts/wordcount.test.mjs)
+- **AC-3** Inline code spans, with single or multiple backticks, are not counted. (evidence: scripts/wordcount.test.mjs)
+- **AC-4** A word is a whitespace-separated token with at least one Unicode letter or digit. Tokens like `-`, `#`, `>`, `—`, `|` are not counted. `**đậm**` counts as 1. (evidence: scripts/wordcount.test.mjs)
+- **AC-5** Indented code blocks (4+ spaces or a tab, starting at a block boundary as defined in Design step 3) are not counted. An indented line that continues a paragraph is counted. (evidence: scripts/wordcount.test.mjs)
+- **AC-6** Leading YAML front matter is not counted. A `---` that is not on line 1 does not start skipping. (evidence: scripts/wordcount.test.mjs)
+- **AC-7** For `[text](url)`, `[text](url "title")`, `[text][id]` and `![alt](url)`, only `text` and `alt` count. Autolinks (`<https://…>`, `<a@b.com>`), HTML tags, HTML comments (also multi-line) and reference definitions `[id]: url` are not counted. Removals never join two words (see the examples in Design step 4). (evidence: scripts/wordcount.test.mjs)
+- **AC-8** `node scripts/wordcount.mjs <file>` prints the count and a newline to stdout and exits with code 0. (evidence: scripts/wordcount.test.mjs)
+- **AC-9** With zero arguments, two or more arguments, or a file that cannot be read, the CLI prints a one-line error to stderr, prints nothing to stdout, and exits with code 1. The read error reads `wordcount: cannot read <path>: <err.code, or err.message when there is no code>`. (evidence: scripts/wordcount.test.mjs)
+- **AC-10** The tests are in `scripts/wordcount.test.mjs`, use `node:test` and `node:assert/strict`, and pass with `node --test scripts/wordcount.test.mjs`. (evidence: scripts/wordcount.test.mjs)
 
 ## Out of scope
 
