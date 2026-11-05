@@ -1,7 +1,19 @@
 const BOM = '﻿';
 const WORD_CHAR = /[\p{L}\p{N}]/u;
 const FENCE_OPEN = /^ {0,3}(`{3,}|~{3,})/;
-const INLINE_CODE = /(?<!`)(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)/g;
+const REFERENCE_DEFINITION = /^ {0,3}\[[^\]]+\]:\s*\S+/;
+
+// Applied in order to the joined prose. Code spans go first because their
+// content is literal. Each replacement is padded so words never glue.
+const INLINE_REPLACEMENTS = [
+  [/(?<!`)(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)/g, ' '],
+  [/<!--[\s\S]*?-->/g, ' '],
+  [/!\[([^\]]*)\]\([^)]*\)/g, ' $1 '],
+  [/\[([^\]]*)\]\([^)]*\)/g, ' $1 '],
+  [/\[([^\]]*)\]\[[^\]]*\]/g, ' $1 '],
+  [/<(?:[A-Za-z][A-Za-z0-9+.-]{1,31}:[^\s<>]*|[^\s<>@]+@[^\s<>]+)>/g, ' '],
+  [/<\/?[A-Za-z][A-Za-z0-9-]*(?:\s[^<>]*)?\/?>/g, ' '],
+];
 
 function prepare(markdown) {
   const withoutBom = markdown.startsWith(BOM) ? markdown.slice(1) : markdown;
@@ -52,6 +64,7 @@ function proseLines(lines) {
       fence = open[1];
       continue;
     }
+    if (REFERENCE_DEFINITION.test(line)) continue;
     kept.push(line);
     atBoundary = false;
   }
@@ -59,7 +72,7 @@ function proseLines(lines) {
 }
 
 function stripInline(prose) {
-  return prose.replace(INLINE_CODE, ' ');
+  return INLINE_REPLACEMENTS.reduce((text, [pattern, replacement]) => text.replace(pattern, replacement), prose);
 }
 
 export function countWords(markdown) {

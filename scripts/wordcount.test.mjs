@@ -125,3 +125,59 @@ test('AC-6: unclosed front matter is counted as prose', () => {
 test('AC-6: --- after line 1 does not start skipping', () => {
   assert.equal(countWords('một\n---\nhai ba\n---\nbốn'), 4);
 });
+
+test('AC-7: inline link counts text only', () => {
+  assert.equal(countWords('[t](https://example.com/path)'), 1);
+});
+
+test('AC-7: link title is not counted', () => {
+  assert.equal(countWords('[t](u "some title")'), 1);
+});
+
+test('AC-7: reference link counts text, not id', () => {
+  assert.equal(countWords('[text][some-id]'), 1);
+});
+
+test('AC-7: adjacent links do not glue', () => {
+  assert.equal(countWords('[a](u)[b](u)'), 2);
+});
+
+test('AC-7: image counts alt only', () => {
+  assert.equal(countWords('![ảnh đẹp](img/x.png)'), 2);
+});
+
+test('AC-7: URL autolink is not counted', () => {
+  assert.equal(countWords('<https://x.y/z>'), 0);
+});
+
+test('AC-7: e-mail autolink is not counted', () => {
+  assert.equal(countWords('<a@b.com>'), 0);
+});
+
+test('AC-7: HTML tag between words does not glue', () => {
+  assert.equal(countWords('foo<br>bar'), 2);
+});
+
+test('AC-7: HTML tags are removed, inner text counts', () => {
+  assert.equal(countWords('<span class="x">chữ</span>'), 1);
+});
+
+test('AC-7: stray angle brackets are not tags', () => {
+  assert.equal(countWords('a < b > c'), 3);
+});
+
+test('AC-7: multi-line HTML comment is not counted', () => {
+  assert.equal(countWords('một <!-- hai\nba --> bốn'), 2);
+});
+
+test('AC-7: comment opener inside a code span is literal', () => {
+  assert.equal(countWords('`<!--` một -->'), 1);
+});
+
+test('AC-7: reference definition is not counted', () => {
+  assert.equal(countWords('một\n\n[id]: https://x.y "Title"'), 1);
+});
+
+test('known limit: tag-like text such as x<y and z>w is removed', () => {
+  assert.equal(countWords('if x<y and z>w'), 3);
+});
