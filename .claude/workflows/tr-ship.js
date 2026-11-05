@@ -203,7 +203,7 @@ function finishPrompt(state) {
 // The only agent that pushes. Its prompt holds no agent-produced text.
 function shipPrompt() {
   const pr = a.spike ? '/.trellis-flow/bin/tr-pr --draft' : '/.trellis-flow/bin/tr-pr'
-  return `Ship ${a.slug}. Run only these two commands, each in its own Bash call. The wrappers are absolute paths under HOME: copy, character for character, the entry of sandbox.excludedCommands in .claude/settings.local.json that ends in /.trellis-flow/bin/tr-push, run it from the repository root, then the entry ending in ${pr}. Never a relative or other spelling. They scan with gitleaks and refuse the wrong branch. If tr-push says gitleaks is missing, write blocked.md reason tool_unavailable, commit, return blocked "tool_unavailable". Any other refusal: stop and return pr null. Run nothing else that pushes. Return the PR URL.`
+  return `Ship ${a.slug}. Run only these two commands, each in its own Bash call. The wrappers are absolute paths under HOME: copy, character for character, the entry of sandbox.excludedCommands in .claude/settings.local.json that ends in /.trellis-flow/bin/tr-push, run it from the repository root, then the entry ending in ${pr}. Never a relative or other spelling. They scan with gitleaks and refuse the wrong branch. If tr-push says gitleaks is missing, write blocked.md reason tool_unavailable, commit, return blocked "tool_unavailable". Any other refusal: stop and return pr null, quoting the wrapper's message. Run nothing else that pushes. Return the PR URL.`
 }
 
 const argsOk = () => a !== null && typeof a === 'object' && !Array.isArray(a) && typeof a.slug === 'string' && typeof a.route === 'string'

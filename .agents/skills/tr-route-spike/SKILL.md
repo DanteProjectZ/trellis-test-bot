@@ -6,7 +6,7 @@ description: "spike route steps; load when route.md says route: spike."
 
 1. Run the `CONSTRAINTS.md` checks of the touched roots. Red: stop and report.
 2. Cut `spike/<slug>` from this branch (`git switch -c spike/<slug>`). Load `prototype` with the Skill tool. Write the question you must answer at the top of `workflow/changes/<slug>/spike.md`.
-3. Write throwaway code on `spike/<slug>`. One run command, no stored data, no real credentials.
+3. List what only the person can do (installs, accounts, downloads, keys; never paste secrets in chat) in ONE message; keep working. Write throwaway code on `spike/<slug>`. One run command, no stored data, no real credentials.
 4. Run it. Finish `spike.md` with: question, answer, evidence (the command and its output), what to keep.
 5. Commit the code and `spike.md` on `spike/<slug>`.
 6. Run the workflow `tr-ship` with the args JSON object (`/tr:start` step 7) and `spike: true`. It opens a draft PR labelled `spike`.

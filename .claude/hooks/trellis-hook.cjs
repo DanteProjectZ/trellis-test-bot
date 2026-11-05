@@ -2,11 +2,11 @@
 "use strict";
 
 // src/hook/bin.ts
-var import_node_fs13 = require("node:fs");
+var import_node_fs14 = require("node:fs");
 
 // src/hook/main.ts
 var import_node_os3 = require("node:os");
-var import_node_path11 = require("node:path");
+var import_node_path12 = require("node:path");
 
 // src/hook/anchor.ts
 var import_node_crypto = require("node:crypto");
@@ -205,7 +205,9 @@ function parseAnchor(text) {
   if (installKind2 !== "v3" || typeof installSchema !== "number") throw new HookFault("anchor_invalid");
   const repos = j.nestedRepos;
   if (repos !== void 0 && (!Array.isArray(repos) || repos.some((d) => typeof d !== "string" || !REPO_DIR.test(d) || d.endsWith("/")))) throw new HookFault("anchor_invalid");
-  return { schemaVersion: 1, repoId, checkout, dotGit, targetBranch: target, installKind: installKind2, installSchema, ...repos === void 0 ? {} : { nestedRepos: repos } };
+  const pushAs = j.pushAs;
+  if (pushAs !== void 0 && pushAs !== "bot" && pushAs !== "person") throw new HookFault("anchor_invalid");
+  return { schemaVersion: 1, repoId, checkout, dotGit, targetBranch: target, installKind: installKind2, installSchema, ...repos === void 0 ? {} : { nestedRepos: repos }, ...pushAs === "person" ? { pushAs } : {} };
 }
 function readAnchor(home, repoId) {
   const file = anchorPath(home, repoId);
@@ -237,7 +239,28 @@ var GITFILE_MAX = 4096;
 var SAFE_NAME = /^[A-Za-z0-9._/@+-]{1,120}$/;
 var shown = (p) => SAFE_NAME.test(p) ? p : "<unprintable name>";
 var WALK_ENTRIES = 2e6;
-var NAMES_ONLY_DIRS = /* @__PURE__ */ new Set(["node_modules", "dist", "build", "out", "target", ".next", ".nuxt", ".turbo", ".cache", ".gradle", ".venv", "venv", "__pycache__", "Pods", "coverage"]);
+var NAMES_ONLY_DIRS = /* @__PURE__ */ new Set([
+  "node_modules",
+  "dist",
+  "build",
+  "out",
+  "target",
+  ".next",
+  ".nuxt",
+  ".turbo",
+  ".cache",
+  ".gradle",
+  ".venv",
+  "venv",
+  "__pycache__",
+  "Pods",
+  "coverage"
+]);
+function flutterNamesOnly(path, name, siblings) {
+  if (name === ".fvm" || name === ".dart_tool") return siblings.has("pubspec.yaml");
+  if (name === ".symlinks") return /(^|\/)(ios|macos\/Flutter\/ephemeral)\/\.symlinks$/.test(path);
+  return name === ".plugin_symlinks" && /(^|\/)ephemeral\/\.plugin_symlinks$/.test(path);
+}
 function leavesTree(top, topReal, rel) {
   try {
     const target = (0, import_node_fs3.realpathSync)((0, import_node_path4.join)(top, rel));
@@ -252,12 +275,14 @@ function gitEntries(top) {
   let budget = WALK_ENTRIES;
   const stack = [{ rel: "", namesOnly: false }];
   for (let cur = stack.pop(); cur !== void 0; cur = stack.pop()) {
-    for (const e of (0, import_node_fs3.readdirSync)((0, import_node_path4.join)(top, cur.rel), { withFileTypes: true })) {
+    const list = (0, import_node_fs3.readdirSync)((0, import_node_path4.join)(top, cur.rel), { withFileTypes: true });
+    const siblings = new Set(list.map((x) => x.name));
+    for (const e of list) {
       if (--budget < 0) throw new HookFault("git_walk_too_big");
       const path = cur.rel === "" ? e.name : `${cur.rel}/${e.name}`;
       if (foldPath(e.name) === ".git") {
         if (cur.rel !== "") found.push(path);
-      } else if (e.isDirectory()) stack.push({ rel: path, namesOnly: cur.namesOnly || NAMES_ONLY_DIRS.has(e.name) });
+      } else if (e.isDirectory()) stack.push({ rel: path, namesOnly: cur.namesOnly || NAMES_ONLY_DIRS.has(e.name) || flutterNamesOnly(path, e.name, siblings) });
       else if (e.isSymbolicLink() && !cur.namesOnly && leavesTree(top, topReal, path)) throw new HookFault(`outside_dir_link: ${shown(path)} is a link to a folder outside the work tree; remove or replace the link outside Claude, or move it into a dependency folder such as node_modules`);
     }
   }
@@ -327,7 +352,7 @@ function nestedGitProblem(top, entries, nestedRepos = []) {
 var import_node_fs4 = require("node:fs");
 
 // src/version.ts
-var VERSION = "1.1.0";
+var VERSION = "1.4.4";
 
 // src/core/personcmd.ts
 var DEFAULT_PKG = `github:dante-trinh/trellis-flow#v${VERSION}`;
@@ -406,6 +431,16 @@ function targetOf(payload) {
   if (typeof raw !== "string" || raw === "") return null;
   if ((0, import_node_path5.isAbsolute)(raw)) return raw;
   return typeof p.cwd === "string" && (0, import_node_path5.isAbsolute)(p.cwd) ? (0, import_node_path5.resolve)(p.cwd, raw) : null;
+}
+var GIT_WORD = /(?<![A-Za-z0-9_])(?:git|gh|trellis(?:-flow)?)(?![A-Za-z0-9_])/i;
+var INDIRECT = /(?<![A-Za-z0-9_])(?:eval|source|(?:ba|z|da|k)?sh(?:\s+--?[\w-]+)*\s+-\w*c)(?![A-Za-z0-9_])|\$['({]|`|(?:^|[;&|(\s])\.\s/i;
+var unquote = (cmd) => cmd.replace(/['"\\]/g, "");
+function checkRetry(payload) {
+  const p = payload;
+  if (p.tool_name !== "Bash" || p.tool_input?.dangerouslyDisableSandbox !== true) return null;
+  const cmd = p.tool_input.command;
+  if (typeof cmd === "string" && !GIT_WORD.test(unquote(cmd)) && !INDIRECT.test(cmd)) return null;
+  return { exit: 2, stderr: "[retry_outside_sandbox] retry outside the sandbox is not allowed for git/gh/trellis; use the trellis wrappers\n" };
 }
 function commitFiles(top, sha) {
   const r = git(top, ["diff-tree", "--no-commit-id", "--name-only", "--diff-filter=AM", "-r", "-z", "--no-renames", sha]);
@@ -535,17 +570,44 @@ function describe(f) {
   return { line: parts.join(" · "), next: next === null ? null : `next: ${next}` };
 }
 
-// src/spectex/run.ts
-var import_node_child_process3 = require("node:child_process");
-var import_node_fs8 = require("node:fs");
-
-// src/core/binpath.ts
+// src/hook/onboard.ts
 var import_node_fs7 = require("node:fs");
 var import_node_path7 = require("node:path");
+var MANIFEST = /^(package\.json|pyproject\.toml|go\.mod|Cargo\.toml|pom\.xml|build\.gradle(\.kts)?|pubspec\.yaml|[^/]+\.csproj)$/;
+var FENCE = /^```yaml trellis-constraints[ \t]*\r?\n([\s\S]*?)^```[ \t]*$/gm;
+var CHECKS_BLOCK = /^checks:[ \t]*\r?\n[ \t]+\S/m;
+var CHECKS_FLOW = /^checks:[ \t]*\{[ \t]*[^\s}]/m;
+var MAX_BYTES = 256 * 1024;
+var ONBOARD_LINE = 'no checks yet: the repo has a stack manifest but CONSTRAINTS.md lists no commands. Say "onboard" or type /tr:onboard.';
+function needsOnboard(top) {
+  try {
+    if (!(0, import_node_fs7.readdirSync)(top).some((n) => MANIFEST.test(n))) return false;
+    const file = (0, import_node_path7.join)(top, "CONSTRAINTS.md");
+    let st;
+    try {
+      st = (0, import_node_fs7.lstatSync)(file);
+    } catch {
+      return true;
+    }
+    if (!st.isFile() || st.size > MAX_BYTES) return false;
+    const text = (0, import_node_fs7.readFileSync)(file, "utf8");
+    return ![...text.matchAll(FENCE)].some((m) => CHECKS_BLOCK.test(m[1]) || CHECKS_FLOW.test(m[1]));
+  } catch {
+    return false;
+  }
+}
+
+// src/spectex/run.ts
+var import_node_child_process3 = require("node:child_process");
+var import_node_fs9 = require("node:fs");
+
+// src/core/binpath.ts
+var import_node_fs8 = require("node:fs");
+var import_node_path8 = require("node:path");
 var CONTROL = /[\u0000-\u001f]/;
 function executable(path) {
   try {
-    (0, import_node_fs7.accessSync)(path, import_node_fs7.constants.X_OK);
+    (0, import_node_fs8.accessSync)(path, import_node_fs8.constants.X_OK);
     return true;
   } catch {
     return false;
@@ -553,14 +615,14 @@ function executable(path) {
 }
 function realOrSelf(path) {
   try {
-    return import_node_fs7.realpathSync.native(path);
+    return import_node_fs8.realpathSync.native(path);
   } catch {
     return path;
   }
 }
 function identity(path) {
   try {
-    const st = (0, import_node_fs7.statSync)(path);
+    const st = (0, import_node_fs8.statSync)(path);
     return `${st.dev}:${st.ino}`;
   } catch {
     return null;
@@ -568,24 +630,24 @@ function identity(path) {
 }
 function isInside(path, root) {
   const target = identity(root);
-  if (target === null || !(0, import_node_path7.isAbsolute)(path)) return false;
+  if (target === null || !(0, import_node_path8.isAbsolute)(path)) return false;
   let dir = path;
-  while (!(0, import_node_fs7.existsSync)(dir) && (0, import_node_path7.dirname)(dir) !== dir) dir = (0, import_node_path7.dirname)(dir);
-  for (let d = realOrSelf(dir); ; d = (0, import_node_path7.dirname)(d)) {
+  while (!(0, import_node_fs8.existsSync)(dir) && (0, import_node_path8.dirname)(dir) !== dir) dir = (0, import_node_path8.dirname)(dir);
+  for (let d = realOrSelf(dir); ; d = (0, import_node_path8.dirname)(d)) {
     if (identity(d) === target) return true;
-    if ((0, import_node_path7.dirname)(d) === d) return false;
+    if ((0, import_node_path8.dirname)(d) === d) return false;
   }
 }
 var rootList = (roots) => roots === void 0 ? [] : typeof roots === "string" ? [roots] : roots;
 var inRepo = (path, roots) => rootList(roots).some((root) => isInside(path, root));
 function safePath(path, roots) {
-  return (path ?? "").split(":").filter((dir) => (0, import_node_path7.isAbsolute)(dir) && !CONTROL.test(dir) && !inRepo(dir, roots)).join(":");
+  return (path ?? "").split(":").filter((dir) => (0, import_node_path8.isAbsolute)(dir) && !CONTROL.test(dir) && !inRepo(dir, roots)).join(":");
 }
 function resolveBin(name, path, roots) {
-  const candidate = safePath(path, roots).split(":").filter((dir) => dir !== "").map((dir) => (0, import_node_path7.join)(dir, name)).find(executable);
+  const candidate = safePath(path, roots).split(":").filter((dir) => dir !== "").map((dir) => (0, import_node_path8.join)(dir, name)).find(executable);
   if (candidate === void 0) return null;
   const real = realOrSelf(candidate);
-  return inRepo(real, roots) || inRepo((0, import_node_path7.dirname)(candidate), roots) ? null : real;
+  return inRepo(real, roots) || inRepo((0, import_node_path8.dirname)(candidate), roots) ? null : real;
 }
 
 // src/spectex/run.ts
@@ -597,7 +659,7 @@ function makeRunSpectex(env2, roots) {
     try {
       const r = (0, import_node_child_process3.spawnSync)(bin, [...args], {
         env: { PATH: safePath(env2.PATH, roots), HOME: home, LC_ALL: "C", GIT_NO_REPLACE_OBJECTS: "1", GIT_CONFIG_NOSYSTEM: "1" },
-        cwd: (0, import_node_fs8.existsSync)(home) ? home : "/",
+        cwd: (0, import_node_fs9.existsSync)(home) ? home : "/",
         stdio: [input === null ? "ignore" : "pipe", "pipe", "ignore"],
         ...input === null ? {} : { input },
         timeout: timeoutMs,
@@ -626,9 +688,9 @@ function spectexRoots(top) {
 // src/spectex/source.ts
 var import_node_child_process4 = require("node:child_process");
 var import_node_crypto2 = require("node:crypto");
-var import_node_fs9 = require("node:fs");
+var import_node_fs10 = require("node:fs");
 var import_node_os = require("node:os");
-var import_node_path8 = require("node:path");
+var import_node_path9 = require("node:path");
 
 // src/core/exit.ts
 var EXIT = { OK: 0, FAIL: 1, USAGE: 2, PRECONDITION: 3, PARTIAL: 4, CANCELLED: 130 };
@@ -769,13 +831,13 @@ function run(top, args, timeoutMs, input, cwd = top) {
 }
 var NO_HELPER = (target) => `origin (it could not be read without your credential helper or keys: use an ssh remote, or check the SHA of ${target} on the host yourself and run with --commit <sha>)`;
 function lsRemote(top, url, target, ms) {
-  const empty = (0, import_node_fs9.mkdtempSync)((0, import_node_path8.join)((0, import_node_os.tmpdir)(), "trellis-lsremote-"));
+  const empty = (0, import_node_fs10.mkdtempSync)((0, import_node_path9.join)((0, import_node_os.tmpdir)(), "trellis-lsremote-"));
   try {
     const ls = run(top, [...transport(), "ls-remote", "--", url, `refs/heads/${target}`], ms, void 0, empty);
     const row = ls.status === 0 ? ls.stdout.toString("utf8").split("\n").map((x) => x.split("	")).find((f) => f[1] === `refs/heads/${target}`) : void 0;
     return row?.[0] ?? "";
   } finally {
-    (0, import_node_fs9.rmSync)(empty, { recursive: true, force: true });
+    (0, import_node_fs10.rmSync)(empty, { recursive: true, force: true });
   }
 }
 function resolveTarget(top, target, explicit = null, remoteMs = REMOTE_MS) {
@@ -846,7 +908,7 @@ function listDecisionBlobs(top, commit, opts = {}) {
   const bad = (detail) => new TrellisError("objects_unsafe", { cause: "hash", detail });
   const common = run(top, ["rev-parse", "--git-common-dir"], LOCAL_MS).stdout.toString("utf8").trim();
   try {
-    (0, import_node_fs9.lstatSync)((0, import_node_path8.join)((0, import_node_path8.isAbsolute)(common) ? common : (0, import_node_path8.join)(top, common), "objects", "info", "alternates"));
+    (0, import_node_fs10.lstatSync)((0, import_node_path9.join)((0, import_node_path9.isAbsolute)(common) ? common : (0, import_node_path9.join)(top, common), "objects", "info", "alternates"));
     throw new TrellisError("objects_unsafe", { cause: "alternates", detail: "objects/info/alternates" });
   } catch (e) {
     if (e instanceof TrellisError) throw e;
@@ -905,12 +967,12 @@ function listDecisionBlobs(top, commit, opts = {}) {
   }
   return out.sort((x, y) => x.slug < y.slug ? -1 : x.slug > y.slug ? 1 : 0);
 }
-var savedPath = (home, repoId) => (0, import_node_path8.join)(home, ".trellis-flow", repoId, "spectex-saved.json");
+var savedPath = (home, repoId) => (0, import_node_path9.join)(home, ".trellis-flow", repoId, "spectex-saved.json");
 function readState(home, repoId) {
   const ids = (v) => new Set(Array.isArray(v) ? v.filter((x) => typeof x === "string") : []);
   try {
-    if (!(0, import_node_fs9.lstatSync)(savedPath(home, repoId)).isFile()) return { saved: /* @__PURE__ */ new Set(), rejected: /* @__PURE__ */ new Set() };
-    const j = JSON.parse((0, import_node_fs9.readFileSync)(savedPath(home, repoId), "utf8"));
+    if (!(0, import_node_fs10.lstatSync)(savedPath(home, repoId)).isFile()) return { saved: /* @__PURE__ */ new Set(), rejected: /* @__PURE__ */ new Set() };
+    const j = JSON.parse((0, import_node_fs10.readFileSync)(savedPath(home, repoId), "utf8"));
     return { saved: ids(j.blobs), rejected: ids(j.rejected) };
   } catch {
     return { saved: /* @__PURE__ */ new Set(), rejected: /* @__PURE__ */ new Set() };
@@ -922,12 +984,12 @@ function readSaved(home, repoId) {
 }
 
 // src/installer/paths.ts
-var import_node_fs10 = require("node:fs");
+var import_node_fs11 = require("node:fs");
 var import_node_os2 = require("node:os");
 function realHome(env2) {
   const home = env2.HOME !== void 0 && env2.HOME.startsWith("/") ? env2.HOME : (0, import_node_os2.homedir)();
   try {
-    return (0, import_node_fs10.realpathSync)(home);
+    return (0, import_node_fs11.realpathSync)(home);
   } catch {
     return home;
   }
@@ -983,14 +1045,16 @@ function sessionStart(payload, gh = realGh) {
   try {
     const top = enclosingTrees(workDirs(payload)[0])[0];
     if (top === void 0 || installKind(top) === "none") return { exit: 0 };
-    const { line, next } = describe(readFacts(top, gh));
+    const facts = readFacts(top, gh);
+    const { line, next } = describe(facts);
+    const onboard = facts.slug !== "onboard" && needsOnboard(top) ? [ONBOARD_LINE] : [];
     let extra = [];
     try {
       extra = spectexLines(top);
     } catch {
     }
-    const context = [line, ...next === null ? [] : [next], ...extra].join("\n");
-    return { exit: 0, stdout: `${JSON.stringify({ systemMessage: [line, ...extra].join("\n"), hookSpecificOutput: { hookEventName: "SessionStart", additionalContext: context } })}
+    const context = [line, ...next === null ? [] : [next], ...onboard, ...extra].join("\n");
+    return { exit: 0, stdout: `${JSON.stringify({ systemMessage: [line, ...onboard, ...extra].join("\n"), hookSpecificOutput: { hookEventName: "SessionStart", additionalContext: context } })}
 ` };
   } catch {
     return { exit: 0, stderr: "[hook_internal] SessionStart\n" };
@@ -998,29 +1062,29 @@ function sessionStart(payload, gh = realGh) {
 }
 
 // src/cli/lang.ts
-var import_node_fs11 = require("node:fs");
-var import_node_path9 = require("node:path");
+var import_node_fs12 = require("node:fs");
+var import_node_path10 = require("node:path");
 var HEAD_BYTES = 64 * 1024;
 function head(path) {
   let fd;
   try {
-    fd = (0, import_node_fs11.openSync)(path, "r");
+    fd = (0, import_node_fs12.openSync)(path, "r");
   } catch {
     return null;
   }
   try {
     const buf = Buffer.alloc(HEAD_BYTES);
-    return buf.subarray(0, (0, import_node_fs11.readSync)(fd, buf, 0, HEAD_BYTES, 0)).toString("utf8");
+    return buf.subarray(0, (0, import_node_fs12.readSync)(fd, buf, 0, HEAD_BYTES, 0)).toString("utf8");
   } catch {
     return null;
   } finally {
-    (0, import_node_fs11.closeSync)(fd);
+    (0, import_node_fs12.closeSync)(fd);
   }
 }
 function repoYamlHead(cwd) {
-  for (let d = cwd; ; d = (0, import_node_path9.dirname)(d)) {
-    if ((0, import_node_fs11.existsSync)((0, import_node_path9.join)(d, ".git"))) return head((0, import_node_path9.join)(d, "workflow", "trellis.yaml"));
-    if ((0, import_node_path9.dirname)(d) === d) return null;
+  for (let d = cwd; ; d = (0, import_node_path10.dirname)(d)) {
+    if ((0, import_node_fs12.existsSync)((0, import_node_path10.join)(d, ".git"))) return head((0, import_node_path10.join)(d, "workflow", "trellis.yaml"));
+    if ((0, import_node_path10.dirname)(d) === d) return null;
   }
 }
 function repoLanguage(cwd) {
@@ -1037,8 +1101,8 @@ function detectLang(env2) {
 
 // src/hook/notify.ts
 var import_node_child_process5 = require("node:child_process");
-var import_node_fs12 = require("node:fs");
-var import_node_path10 = require("node:path");
+var import_node_fs13 = require("node:fs");
+var import_node_path11 = require("node:path");
 
 // src/core/notify.ts
 var NOTIFY_TYPES = ["permission_prompt", "worker_permission_prompt", "elicitation_dialog", "elicitation_url_dialog", "agent_needs_input"];
@@ -1059,7 +1123,7 @@ var OSC_TERMINALS = ["ghostty", "kitty", "iTerm.app", "WezTerm"];
 var realDeps = (env2) => ({
   platform: process.platform,
   env: env2,
-  exists: import_node_fs12.existsSync,
+  exists: import_node_fs13.existsSync,
   spawn: (cmd, args, opts) => (0, import_node_child_process5.spawnSync)(cmd, [...args], { timeout: opts.timeout, stdio: "ignore" })
 });
 function desktopEnabled(selfDir) {
@@ -1071,7 +1135,7 @@ function notify(payload, selfDir, deps = realDeps(process.env)) {
   const type = typeof payload === "object" && payload !== null ? payload.notification_type : void 0;
   if (typeof type !== "string" || !NOTIFY_TYPES.includes(type)) return { exit: 0 };
   if (!desktopEnabled(selfDir)) return { exit: 0 };
-  const repo = (0, import_node_path10.basename)((0, import_node_path10.resolve)(selfDir, "..", "..")).replace(/[^A-Za-z0-9_.-]/g, "").slice(0, NAME_MAX) || "repo";
+  const repo = (0, import_node_path11.basename)((0, import_node_path11.resolve)(selfDir, "..", "..")).replace(/[^A-Za-z0-9_.-]/g, "").slice(0, NAME_MAX) || "repo";
   const body = `${repo}: ${NOTIFY_TEXT[type][repoLanguage(selfDir) ?? detectLang(deps.env)]}`;
   if (deps.platform === "darwin" && !OSC_TERMINALS.includes(deps.env.TERM_PROGRAM ?? "") && deps.exists(OSASCRIPT)) {
     try {
@@ -1098,7 +1162,7 @@ var parse = (stdin) => {
     return null;
   }
 };
-var homeOf = (io) => typeof io.env.HOME === "string" && (0, import_node_path11.isAbsolute)(io.env.HOME) ? io.env.HOME : (0, import_node_os3.homedir)();
+var homeOf = (io) => typeof io.env.HOME === "string" && (0, import_node_path12.isAbsolute)(io.env.HOME) ? io.env.HOME : (0, import_node_os3.homedir)();
 function runHook(io) {
   const payload = io.event === "PreToolUse" ? parse(io.stdin) : io.event === "SessionStart" ? parse(io.stdin) : null;
   const dirs = workDirs(payload);
@@ -1106,6 +1170,8 @@ function runHook(io) {
     case "PreToolUse":
       if (typeof payload !== "object" || payload === null || Array.isArray(payload)) return { exit: 2, stderr: "[hook_internal] PreToolUse payload is not JSON; every tool stays blocked.\n" };
       {
+        const retry = checkRetry(payload);
+        if (retry !== null) return retry;
         const drift = checkDrift(dirs, homeOf(io));
         return drift.exit === 0 ? checkGates(payload, homeOf(io)) ?? drift : drift;
       }
@@ -1130,7 +1196,7 @@ var code;
 try {
   let stdin = "";
   try {
-    stdin = (0, import_node_fs13.readFileSync)(0, "utf8");
+    stdin = (0, import_node_fs14.readFileSync)(0, "utf8");
   } catch {
   }
   const r = runHook({ event, stdin, env: process.env, selfDir: __dirname });

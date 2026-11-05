@@ -19,11 +19,11 @@
   },
   "sandbox": {
     "enabled": true,
-    "allowUnsandboxedCommands": false,
     "autoAllowBashIfSandboxed": true,
     "network": {
       "allowedDomains": [],
-      "allowUnixSockets": []
+      "allowUnixSockets": [],
+      "allowLocalBinding": true
     },
     "credentials": {
       "envVars": [
@@ -40,12 +40,12 @@
           "mode": "deny"
         }
       ]
-    }
+    },
+    "allowUnsandboxedCommands": true
   },
   "permissions": {
     "defaultMode": "acceptEdits",
     "disableBypassPermissionsMode": "disable",
-    "blockReadsOutsideWorkingDirectories": true,
     "deny": [
       "Read(~/.ssh/**)",
       "Read(~/.aws/**)",
@@ -126,7 +126,24 @@
       "mcp__spectex__spectex_review_doc_links",
       "mcp__spectex__spectex_detect_gaps",
       "mcp__spectex__spectex_detect_contradictions",
-      "mcp__spectex__spectex_get_resource_usage"
+      "mcp__spectex__spectex_get_resource_usage",
+      "Read(~/.azure/**)",
+      "Read(~/.pypirc)",
+      "Read(~/.claude.json)",
+      "Read(~/**/key.properties)",
+      "Read(~/Library/Application Support/dart/pub-credentials.json)",
+      "Read(~/Library/Application Support/dart/pub-tokens.json)",
+      "Read(~/.config/configstore/**)",
+      "Read(~/.appstoreconnect/**)",
+      "Read(~/.gradle/gradle.properties)",
+      "Read(~/.zsh_history)",
+      "Read(~/.bash_history)",
+      "Read(~/.claude/.credentials.json)",
+      "Read(~/.cargo/credentials.toml)",
+      "Read(~/.vault-token)",
+      "Read(~/.terraform.d/**)",
+      "Read(~/Library/Keychains/**)",
+      "Read(~/.config/spectex/**)"
     ],
     "ask": [
       "WebFetch",
