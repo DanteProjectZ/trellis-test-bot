@@ -25,14 +25,18 @@ const WORD_CHAR = /[\p{L}\p{N}]/u;
 const FENCE_OPEN = /^ {0,3}(`{3,}|~{3,})/;
 const REFERENCE_DEFINITION = /^ {0,3}\[[^\]]+\]:\s*\S+/;
 
-// Applied in order to the joined prose. Code spans go first because their
-// content is literal. Each replacement is padded so words never glue.
+const BACKTICK_RUN = /`+/g;
+const COMMENT_OPEN = '<!--';
+const COMMENT_CLOSE = '-->';
+
+// Applied in order after code spans and comments. Each replacement is padded
+// so words never glue. Bracket and parenthesis classes exclude their own
+// openers so an unclosed opener stops at the next one: the scan stays linear
+// on long lines instead of rescanning to the end from every opener.
 const INLINE_REPLACEMENTS = [
-  [/(?<!`)(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)/g, ' '],
-  [/<!--[\s\S]*?-->/g, ' '],
-  [/!\[([^\]]*)\]\([^)]*\)/g, ' $1 '],
-  [/\[([^\]]*)\]\([^)]*\)/g, ' $1 '],
-  [/\[([^\]]*)\]\[[^\]]*\]/g, ' $1 '],
+  [/!\[([^[\]]*)\]\([^()]*\)/g, ' $1 '],
+  [/\[([^[\]]*)\]\([^()]*\)/g, ' $1 '],
+  [/\[([^[\]]*)\]\[[^[\]]*\]/g, ' $1 '],
   [/<(?:[A-Za-z][A-Za-z0-9+.-]{1,31}:[^\s<>]*|[^\s<>@]+@[^\s<>]+)>/g, ' '],
   [/<\/?[A-Za-z][A-Za-z0-9-]*(?:\s[^<>]*)?\/?>/g, ' '],
 ];
@@ -93,8 +97,62 @@ function proseLines(lines) {
   return kept;
 }
 
+// Replaces each <!-- ... --> with a space in one left-to-right pass. When an
+// opener has no closer, no later opener can close either, so the scan stops.
+function stripComments(text) {
+  const parts = [];
+  let from = 0;
+  let open = text.indexOf(COMMENT_OPEN, from);
+  while (open !== -1) {
+    const close = text.indexOf(COMMENT_CLOSE, open + COMMENT_OPEN.length);
+    if (close === -1) break;
+    parts.push(text.slice(from, open), ' ');
+    from = close + COMMENT_CLOSE.length;
+    open = text.indexOf(COMMENT_OPEN, from);
+  }
+  parts.push(text.slice(from));
+  return parts.join('');
+}
+
+// Replaces each code span with a space in one left-to-right pass. A span runs
+// from a backtick run to the next run of the same length. The next run of each
+// length is found in one right-to-left pass, so the scan stays linear however
+// many unclosed runs of different lengths the text holds.
+function stripCodeSpans(text) {
+  const runs = Array.from(text.matchAll(BACKTICK_RUN), (m) => ({
+    start: m.index,
+    end: m.index + m[0].length,
+  }));
+  const nextSame = new Array(runs.length).fill(-1);
+  const lastByLength = new Map();
+  for (let i = runs.length - 1; i >= 0; i--) {
+    const length = runs[i].end - runs[i].start;
+    nextSame[i] = lastByLength.get(length) ?? -1;
+    lastByLength.set(length, i);
+  }
+  const parts = [];
+  let from = 0;
+  let i = 0;
+  while (i < runs.length) {
+    const close = nextSame[i];
+    if (close === -1) {
+      i += 1;
+      continue;
+    }
+    parts.push(text.slice(from, runs[i].start), ' ');
+    from = runs[close].end;
+    i = close + 1;
+  }
+  parts.push(text.slice(from));
+  return parts.join('');
+}
+
 function stripInline(prose) {
-  return INLINE_REPLACEMENTS.reduce((text, [pattern, replacement]) => text.replace(pattern, replacement), prose);
+  const withoutComments = stripComments(stripCodeSpans(prose));
+  return INLINE_REPLACEMENTS.reduce(
+    (text, [pattern, replacement]) => text.replace(pattern, replacement),
+    withoutComments,
+  );
 }
 
 export function countWords(markdown) {
