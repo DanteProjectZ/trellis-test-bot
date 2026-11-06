@@ -216,6 +216,31 @@ test('AC-9: two arguments print usage and exit 1', () => {
   assert.match(result.stderr, /^Usage: /);
 });
 
+// Unclosed openers on one very long line once made the inline regexes scan
+// to the end of the text from every opener (quadratic). The CLI runs in a
+// child process so a hang fails at the timeout instead of blocking the run.
+const LONG_LINE_BUDGET_MS = 3000;
+const LONG_LINE_CASES = [
+  ['unclosed link text', '[a ', 80000],
+  ['unclosed image text', '![a ', 60000],
+  ['unclosed link URL', '[a](x ', 80000],
+  ['unclosed HTML comment', '<!-- a ', 160000],
+];
+
+for (const [name, unit, repeats] of LONG_LINE_CASES) {
+  test(`long line with ${name} finishes and counts every word`, () => {
+    const file = join(mkdtempSync(join(tmpdir(), 'wc-')), 'long.md');
+    writeFileSync(file, unit.repeat(repeats));
+    const result = spawnSync(process.execPath, [SCRIPT, file], {
+      encoding: 'utf8',
+      timeout: LONG_LINE_BUDGET_MS,
+    });
+    assert.equal(result.error, undefined, `did not finish within ${LONG_LINE_BUDGET_MS} ms`);
+    assert.equal(result.status, 0);
+    assert.equal(result.stdout, `${repeats}\n`);
+  });
+}
+
 test('AC-9: unreadable file prints an error and exits 1', () => {
   const missing = join(mkdtempSync(join(tmpdir(), 'wc-')), 'missing.md');
   const result = runCli([missing]);
