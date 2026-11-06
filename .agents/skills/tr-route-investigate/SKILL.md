@@ -9,7 +9,7 @@ description: "investigate route steps; load when route.md says route: investigat
 3. Load `tr-spectex` with the Skill tool. Read failures and traces for the suspect code.
 4. Several independent faults: Load `dispatching-parallel-agents` with the Skill tool, one agent per fault, read-only.
 5. Write `workflow/changes/<slug>/findings.md`: question, each hypothesis with evidence for or against, cause, proposed fix route.
-6. Commit it on `feat/<slug>`. It is not pushed and there is no PR.
+6. Commit on `feat/<slug>`. There is no PR.
 
 ## Ends with
 

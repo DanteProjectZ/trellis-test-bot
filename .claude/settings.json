@@ -144,7 +144,14 @@
       "Read(~/.vault-token)",
       "Read(~/.terraform.d/**)",
       "Read(~/Library/Keychains/**)",
-      "Read(~/.config/spectex/**)"
+      "Read(~/.config/spectex/**)",
+      "Edit(/.spectex/vectors/decisions.lance/**)",
+      "Bash(trellis learn*)",
+      "Bash(npx trellis-flow learn*)",
+      "Bash(npx *trellis-flow* learn*)",
+      "Bash(spectex batch*)",
+      "Bash(spectex * batch*)",
+      "Bash(spectex --root * batch*)"
     ],
     "ask": [
       "WebFetch",
@@ -215,7 +222,9 @@
       "mcp__spectex__spectex_select_relevant_files",
       "mcp__spectex__spectex_shape_check",
       "mcp__spectex__spectex_trace_cross_source",
-      "mcp__spectex__spectex_trace_symbol"
+      "mcp__spectex__spectex_trace_symbol",
+      "mcp__spectex__spectex_get_skill",
+      "mcp__spectex__spectex_list_skills"
     ]
   }
 }

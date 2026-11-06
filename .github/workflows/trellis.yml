@@ -6,7 +6,7 @@ permissions:
   contents: read
 env:
   # Read back from the BASE copy of this file by the static job, to pin the guard it extracts from base.
-  GUARD_SHA256: 6c951ffb4b32134adaa1aa80929ef867b566ef3734c5a3883add47903d50c816
+  GUARD_SHA256: a04b50b5acb1dff8c1b9aa07eeaca835e26ce1bb27b1230c202faaa8914df303
 concurrency:
   group: trellis-${{ github.event.pull_request.number }}
   cancel-in-progress: true
