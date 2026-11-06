@@ -8594,10 +8594,13 @@ function rootOf(path, constraints) {
   }
   return best;
 }
+var CONVENTIONAL_TEST_GLOBS = ["**/*.test.*", "**/*.spec.*", "**/*_test.*", "**/test_*.py", "**/{test,tests,__tests__}/**"];
+var conventionalTest = matcher(CONVENTIONAL_TEST_GLOBS);
 function isTestPath(path, constraints) {
   const c = rootOf(path, constraints);
   if (c === null) return false;
-  return matcher(c.test_globs)(relativeTo(path, c.root));
+  const rel = relativeTo(path, c.root);
+  return (c.test_globs.length === 0 ? conventionalTest : matcher(c.test_globs))(rel);
 }
 
 // src/guard/run-shell.ts

@@ -5,11 +5,12 @@ description: "docs route steps; load when route.md says route: docs."
 ## Steps
 
 1. Run the `CONSTRAINTS.md` checks of the touched roots. Red: stop and report.
-2. Load `grilling` with the Skill tool. Ask the person who reads it and what they must do after. Record answers in `workflow/changes/<slug>/decisions.md`. List what only the person can do (installs, accounts, downloads, keys; never paste secrets in chat) in ONE message; keep working.
-3. Write from `docs/templates/PRD.md` or `docs/templates/ADR.md` when present. Else use these headings: Context, Decision, Alternatives, Consequences (ADR); Problem, Goals, Non-goals, Requirements (PRD).
-4. Run the subagent `tr-goldfish` on the new text. NOT READY: fix the text, run it again.
-5. Run the markdown lint and link checks from `CONSTRAINTS.md`. Fix every finding.
-6. Commit on `feat/<slug>`. Run the workflow `tr-ship` with the args JSON object (`/tr:start` step 7) (spec lens only).
+2. Load `grilling` with the Skill tool. Ask who reads it, what they do after. Record answers in `workflow/changes/<slug>/grill.md`, not `decisions.md`. List what only the person can do (installs, accounts, downloads, keys; never paste secrets) in ONE message; keep working.
+3. Write from `docs/templates/PRD.md` or `docs/templates/ADR.md` when present. Else headings: Context, Decision, Alternatives, Consequences (ADR); Problem, Goals, Non-goals, Requirements (PRD).
+4. Run subagent `tr-goldfish` on the new text. NOT READY: fix, run again.
+5. Run the `CONSTRAINTS.md` lint and link checks; fix findings.
+6. Choices a later session must not undo (up to 3 lines `YYYY-MM-DD · decision · why · file`; none is fine) go in `workflow/changes/<slug>/decisions.md`, in English.
+7. Commit on `feat/<slug>`. Run workflow `tr-ship` with the args JSON object (`/tr:start` step 7) (spec lens only).
 
 ## Ends with
 

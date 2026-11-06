@@ -2,11 +2,11 @@
 "use strict";
 
 // src/hook/bin.ts
-var import_node_fs14 = require("node:fs");
+var import_node_fs16 = require("node:fs");
 
 // src/hook/main.ts
-var import_node_os3 = require("node:os");
-var import_node_path12 = require("node:path");
+var import_node_os2 = require("node:os");
+var import_node_path13 = require("node:path");
 
 // src/hook/anchor.ts
 var import_node_crypto = require("node:crypto");
@@ -352,7 +352,7 @@ function nestedGitProblem(top, entries, nestedRepos = []) {
 var import_node_fs4 = require("node:fs");
 
 // src/version.ts
-var VERSION = "1.4.6";
+var VERSION = "1.5.0";
 
 // src/core/personcmd.ts
 var DEFAULT_PKG = `github:dante-trinh/trellis-flow#v${VERSION}`;
@@ -415,8 +415,182 @@ function checkDrift(dirs, home) {
 var import_node_fs5 = require("node:fs");
 var import_node_path5 = require("node:path");
 
+// src/core/exit.ts
+var EXIT = { OK: 0, FAIL: 1, USAGE: 2, PRECONDITION: 3, PARTIAL: 4, CANCELLED: 130 };
+
+// src/core/codes.ts
+var CODES = {
+  usage_error: { exit: EXIT.USAGE, vi: "Sai cú pháp lệnh `{cmd}`.", en: "Invalid usage of `{cmd}`.", hint_vi: `\`${personCmd("{cmd} --help")}\``, hint_en: `\`${personCmd("{cmd} --help")}\`` },
+  human_only: { exit: EXIT.USAGE, vi: "`{cmd}` chỉ người chạy được, trong terminal.", en: "`{cmd}` can only be run by a person, in a terminal.", hint_vi: `Mở terminal ngoài repo và chạy \`${personCmd("{cmd}")}\``, hint_en: `Open a terminal outside the repository and run \`${personCmd("{cmd}")}\`` },
+  schema_invalid: { exit: EXIT.USAGE, vi: "`{file}`: trường `{field}` sai hoặc không được phép.", en: "`{file}`: field `{field}` is invalid or not allowed.", hint_vi: "Sửa theo schema `{name}` v{n}", hint_en: "Fix it to match schema `{name}` v{n}" },
+  catalog_invalid: { exit: EXIT.USAGE, vi: "Catalog: `{file}` sai ở `{field}`.", en: "Catalog: `{file}` is invalid at `{field}`.", hint_vi: "Sửa file catalog (hoặc file ghi đè trong `.trellis/catalog/`)", hint_en: "Fix the catalog file (or the override in `.trellis/catalog/`)" },
+  not_git_repo: { exit: EXIT.PRECONDITION, vi: "`{dir}` không phải repo git.", en: "`{dir}` is not a git repository.", hint_vi: "`git init` hoặc `--cwd`", hint_en: "`git init`, or pass `--cwd`" },
+  not_initialized: { exit: EXIT.PRECONDITION, vi: "Repo chưa cài trellis.", en: "trellis is not installed in this repository.", hint_vi: `\`${personCmd("init")}\`, chạy từ ngoài repo (repo private: cần quyền git vào repo); nếu SSH mặc định thuộc tài khoản khác: \`npx -y "git+ssh://git@<host>/dante-trinh/trellis-flow.git#v${VERSION}" init\`, thay \`<host>\` bằng alias SSH của bạn`, hint_en: `\`${personCmd("init")}\`, run from outside the repository (private repo: needs git access to it); if your default SSH key belongs to another account: \`npx -y "git+ssh://git@<host>/dante-trinh/trellis-flow.git#v${VERSION}" init\`, replace \`<host>\` with your SSH alias` },
+  schema_newer: { exit: EXIT.PRECONDITION, vi: "`{file}` do trellis mới hơn ghi (v{n}).", en: "`{file}` was written by a newer trellis (v{n}).", hint_vi: "Nâng trellis: chạy `init` của bản mới, ví dụ `npx --yes github:dante-trinh/trellis-flow#<tag mới> init --cwd <top>` (repo private: cần quyền git vào repo)", hint_en: "Upgrade trellis: run `init` of the new version, e.g. `npx --yes github:dante-trinh/trellis-flow#<new tag> init --cwd <top>` (private repo: needs git access to it)" },
+  node_too_old: { exit: EXIT.PRECONDITION, vi: "Node {v} < {min}.", en: "Node {v} < {min}.", hint_vi: "Cài Node ≥ {min}", hint_en: "Install Node ≥ {min}" },
+  git_too_old: { exit: EXIT.PRECONDITION, vi: "git {v} < {min}.", en: "git {v} < {min}.", hint_vi: "Nâng git", hint_en: "Upgrade git" },
+  version_too_old: { exit: EXIT.PRECONDITION, vi: "Claude Code {v} < {min}.", en: "Claude Code {v} < {min}.", hint_vi: "`claude update`", hint_en: "`claude update`" },
+  dirty_tree: { exit: EXIT.PRECONDITION, vi: "Working tree có thay đổi chưa commit.", en: "The working tree has uncommitted changes.", hint_vi: "Commit file trellis cần ghi (nếu là file của lần cài trước chưa commit: chạy lệnh git ở màn cuối lần đó), hoặc `--allow-dirty` (cài, không tạo commit)", hint_en: "Commit the file trellis needs to write (files of an earlier uncommitted install: run the git command from that install's last screen), or pass `--allow-dirty` (installs without a commit)" },
+  detached_head: { exit: EXIT.PRECONDITION, vi: "HEAD tách rời hoặc đang merge / rebase.", en: "HEAD is detached, or a merge / rebase is in progress.", hint_vi: "Hoàn tất thao tác git đang dở", hint_en: "Finish the git operation in progress" },
+  lock_held: { exit: EXIT.PRECONDITION, vi: "Một lệnh trellis khác đang chạy (pid {pid}).", en: "Another trellis command is running (pid {pid}).", hint_vi: "Chờ, hoặc kiểm tiến trình", hint_en: "Wait, or check the process" },
+  manifest_invalid: { exit: EXIT.PRECONDITION, vi: "Manifest cài hỏng hoặc thiếu.", en: "The install manifest is missing or broken.", hint_vi: `\`${personCmd("doctor")}\`; cài lại bằng \`init --force\``, hint_en: `\`${personCmd("doctor")}\`; reinstall with \`init --force\`` },
+  locally_modified: { exit: EXIT.PRECONDITION, vi: "{n} file của trellis bị sửa tay.", en: "{n} trellis file(s) were edited by hand.", hint_vi: "Xem `git diff -- workflow/bin`; cài lại bằng `init --force`", hint_en: "See `git diff -- workflow/bin`; reinstall with `init --force`" },
+  doctor_failed: { exit: EXIT.FAIL, vi: "`doctor`: {n} mục kiểm `fail`.", en: "`doctor`: {n} check(s) failed.", hint_vi: "Xem từng mục; mục ghi `doctor --fix` thì người chạy lệnh đó ở terminal", hint_en: "See each check; for the ones that say `doctor --fix`, a person runs that in a terminal" },
+  unborn_head: { exit: EXIT.PRECONDITION, vi: "Repo chưa có commit nào; `{cmd}` cần HEAD.", en: "The repository has no commits; `{cmd}` needs HEAD.", hint_vi: "Tạo commit đầu tiên (commit các file `init` đã ghi), rồi chạy lại", hint_en: "Make the first commit (commit the files `init` wrote), then run it again" },
+  os_unsupported: { exit: EXIT.PRECONDITION, vi: "Hệ điều hành `{os}` chưa được hỗ trợ.", en: "Operating system `{os}` is not supported.", hint_vi: "Dùng macOS, Linux, hoặc WSL2 với repo nằm trong filesystem của WSL", hint_en: "Use macOS, Linux, or WSL2 with the repository inside the WSL filesystem" },
+  not_yet_supported: { exit: EXIT.PRECONDITION, vi: "`{feature}` chưa có ở trellis {version}.", en: "`{feature}` is not available in trellis {version}.", hint_vi: "Chờ bản trellis có `{feature}`", hint_en: "Wait for a trellis release with `{feature}`" },
+  linked_worktree: { exit: EXIT.PRECONDITION, vi: "`{cmd}` chạy ở checkout chính, không ở worktree phụ.", en: "`{cmd}` runs in the main checkout, not in a linked worktree.", hint_vi: "`cd {dir}` rồi chạy lại", hint_en: "`cd {dir}` and run it again" },
+  settings_unsafe: { exit: EXIT.PRECONDITION, vi: "`{path}`: `{key}` làm guardrail của trellis vô hiệu; không ghi gì.", en: "`{path}`: `{key}` disables trellis guardrails; nothing was written.", hint_vi: "Sửa `{key}` trong `{path}`, rồi chạy lại", hint_en: "Change `{key}` in `{path}`, then run it again" },
+  replace_refs_present: { exit: EXIT.PRECONDITION, vi: "`refs/replace` có mục (đầu tiên: `{ref}`): git của người có thể cho ra nội dung khác với trellis.", en: "`refs/replace` has entries (first: `{ref}`): a person's git can show other bytes than trellis.", hint_vi: "Người xem `git for-each-ref refs/replace` ở terminal (cả `packed-refs`) và xoá mục không phải của mình bằng `git update-ref -d` trước khi chạy lệnh git nào ghi cây làm việc", hint_en: "A person looks at `git for-each-ref refs/replace` in a terminal (`packed-refs` too) and removes entries that are not theirs with `git update-ref -d` before running any git command that writes the work tree" },
+  objects_unsafe: { exit: EXIT.PRECONDITION, vi: "Kho object của git không đáng tin ({cause}): {detail}", en: "The git object store cannot be trusted ({cause}): {detail}", hint_vi: "Đừng chạy lệnh git nào ghi cây làm việc (`switch`, `checkout`, `merge`, `rebase`, `pull`). Người chạy `git fsck --no-dangling` ở terminal; object lỏng hỏng: xoá file nó nêu rồi `git fetch origin`; object hỏng trong pack: clone lại repo; index hỏng (sandbox ghi được `.git/index`, `fsck` kiểm cả index): xem `git status`, dựng lại bằng `git read-tree HEAD` ở terminal; chỉ lỗi định dạng của commit cũ (`badTimezone`, `missingEmail`…), không phải `hash-path mismatch` / `corrupt` / `missing`: đặt `fsck.<msg-id>=warn` hay `fsck.skipList` trong config của người. Rồi chạy lại lệnh vừa báo lỗi", hint_en: "Run no git command that writes the work tree (`switch`, `checkout`, `merge`, `rebase`, `pull`). A person runs `git fsck --no-dangling` in a terminal; a bad loose object: delete the file it names, then `git fetch origin`; a bad object in a pack: clone the repository again; a bad index (the sandbox can write `.git/index`, and `fsck` checks the index): look at `git status`, rebuild it with `git read-tree HEAD` in a terminal; only a format error of an old commit (`badTimezone`, `missingEmail`…), not `hash-path mismatch` / `corrupt` / `missing`: set `fsck.<msg-id>=warn` or `fsck.skipList` in your own config. Then run the command that reported the error again" },
+  fetch_failed: { exit: EXIT.PRECONDITION, vi: "Không fetch được từ `{remote}`.", en: "Cannot fetch from `{remote}`.", hint_vi: "Kiểm mạng / quyền (credential helper, SSH agent), rồi chạy lại", hint_en: "Check the network and access (credential helper, SSH agent), then run it again" },
+  target_diverged: { exit: EXIT.PRECONDITION, vi: "`{branch}` local có commit không có trên `origin/{branch}`.", en: "Local `{branch}` has commits that `origin/{branch}` does not.", hint_vi: "Người push các commit của `{branch}` local, hoặc tự đưa nhánh đó về khớp remote bằng cách của mình (không phải việc của agent), rồi chạy lại", hint_en: "Push the local `{branch}` commits, or bring that branch in line with the remote yourself, your own way (not a job for the agent), then run it again" },
+  not_checked: { exit: EXIT.PRECONDITION, vi: "`{slug}` chưa được kiểm trên cây kết quả merge ({cause}).", en: "`{slug}` is not checked on the merge result tree ({cause}).", hint_vi: "Lead chạy lệnh kiểm của feature (`check {slug}`) trong phiên của feature (sandbox; không chạy ở terminal: lệnh kiểm là code của feature), xem `data` và `tr-check.log`, rồi `review seal` lại", hint_en: "The lead runs the feature check (`check {slug}`) in the feature's session (sandboxed; not in a terminal: the checks are the feature's code), reads `data` and `tr-check.log`, then `review seal` again" },
+  state_unwritable: { exit: EXIT.FAIL, vi: "Không ghi được file trạng thái của `learn` ({cause}); {sent} mục đã gửi vào Spectex.", en: "`learn` cannot write its state file ({cause}); {sent} item(s) were sent into Spectex.", hint_vi: "Sửa quyền của `~/.trellis-flow` rồi chạy lại; mục đã gửi mà chưa đánh dấu có thể bị gửi lại, lệnh hoàn tác được in khi đã gửi mục nào đó", hint_en: "Fix the permissions of `~/.trellis-flow` and run it again; an item sent but not marked may be sent again, the undo command is printed when anything was sent" },
+  file_changed: { exit: EXIT.FAIL, vi: "`{path}` đổi trong lúc cài; đã rollback, không ghi gì.", en: "`{path}` changed during the install; rolled back, nothing was written.", hint_vi: "Chạy lại `init`", hint_en: "Run `init` again" },
+  file_unparsable: { exit: EXIT.FAIL, vi: "`{path}` không parse được; không ghi gì.", en: "`{path}` cannot be parsed; nothing was written.", hint_vi: "Sửa file cho đúng cú pháp, rồi chạy lại", hint_en: "Fix the file's syntax, then run it again" },
+  marker_invalid: { exit: EXIT.FAIL, vi: "Marker `{block}` trong `{path}` bị trùng hoặc hỏng; không ghi gì.", en: "Marker `{block}` in `{path}` is duplicated or broken; nothing was written.", hint_vi: "Sửa tay cho còn đúng một cặp begin / end, rồi chạy lại", hint_en: "Leave exactly one begin / end pair by hand, then run it again" },
+  path_conflict: { exit: EXIT.FAIL, vi: "`{path}` đã có và không phải của trellis; không ghi gì.", en: "`{path}` exists and does not belong to trellis; nothing was written.", hint_vi: "Đổi tên / xoá file, hoặc `--force` (có backup)", hint_en: "Rename or remove the file, or pass `--force` (it is backed up)" },
+  path_conflict_outside: { exit: EXIT.FAIL, vi: "`{path}` nằm ngoài repo, đã có và trellis không ghi nhận là của nó (manifest thiếu hoặc file đã đổi); không ghi gì.", en: "`{path}` is outside the repository and exists, and trellis has no record of it (the manifest is missing or the file changed); nothing was written.", hint_vi: "`--force` không áp dụng cho file ngoài repo: dời file đó sang chỗ khác rồi chạy lại init", hint_en: "`--force` does not apply outside the repository: move that file aside and run init again" },
+  rollback_incomplete: { exit: EXIT.PARTIAL, vi: "Rollback không trọn; backup ở `{dir}`.", en: "Rollback did not finish; the backup is in `{dir}`.", hint_vi: "Khôi phục tay từ backup", hint_en: "Restore by hand from the backup" },
+  disk_full: { exit: EXIT.FAIL, vi: "Hết chỗ trống khi ghi `{path}`.", en: "Out of disk space while writing `{path}`.", hint_vi: "Giải phóng ổ đĩa; xem `data.rolled_back`", hint_en: "Free disk space; see `data.rolled_back`" },
+  hook_internal: { exit: EXIT.USAGE, vi: "Hook lỗi nội bộ ({event}).", en: "Internal hook error ({event}).", hint_vi: `Kiểm \`.claude/hooks/trellis-hook.cjs\` và đường dẫn node trong \`.claude/settings.local.json\`; người chạy lại \`${personCmd("init")}\``, hint_en: `Check \`.claude/hooks/trellis-hook.cjs\` and the node path in \`.claude/settings.local.json\`; a person runs \`${personCmd("init")}\` again` },
+  worktree_refused: { exit: EXIT.USAGE, vi: "trellis làm việc trên một nhánh ngay ở checkout này, không tạo worktree.", en: "trellis works on a branch in this checkout; it does not create worktrees.", hint_vi: "Làm tiếp trên nhánh hiện tại, trong phiên này", hint_en: "Keep working on the current branch, in this session" },
+  cancelled: { exit: EXIT.CANCELLED, vi: "Đã huỷ.", en: "Cancelled.", hint_vi: "", hint_en: "" },
+  internal_error: { exit: EXIT.FAIL, vi: "Lỗi nội bộ trong `{cmd}`.", en: "Internal error in `{cmd}`.", hint_vi: "Chạy lại; nếu còn lỗi, gửi stderr cho người bảo trì trellis", hint_en: "Run it again; if it still fails, send stderr to the trellis maintainers" },
+  // v3 installer (K1b)
+  unknown_pack: { exit: EXIT.USAGE, vi: "Không có pack `{id}` trong catalog.", en: "There is no pack `{id}` in the catalog.", hint_vi: "`init --list packs`", hint_en: "`init --list packs`" },
+  unknown_adapter: { exit: EXIT.USAGE, vi: "Không có adapter `{id}` trong catalog.", en: "There is no adapter `{id}` in the catalog.", hint_vi: "`init --list adapters`", hint_en: "`init --list adapters`" },
+  unresolved_question: { exit: EXIT.USAGE, vi: "`init` cần một câu trả lời: {question}.", en: "`init` needs an answer: {question}.", hint_vi: "Thêm cờ nêu ở trên, hoặc chạy `init` trong terminal để được hỏi", hint_en: "Add the flag named above, or run `init` in a terminal to be asked" },
+  workspace_invalid: { exit: EXIT.USAGE, vi: "`trellis.workspace.yaml` sai: `{field}`.", en: "`trellis.workspace.yaml` is invalid: `{field}`.", hint_vi: "Sửa file rồi chạy lại `init`", hint_en: "Fix the file, then run `init` again" },
+  workspace_repo_state: { exit: EXIT.PRECONDITION, vi: "Repo `{dir}` của workspace {why}.", en: "The workspace repo `{dir}` {why}.", hint_vi: "Chuyển nó về nhánh đích, commit hoặc stash thay đổi, rồi chạy lại `init`", hint_en: "Switch it to its target branch, commit or stash its changes, then run `init` again" },
+  bot_dir_conflict: { exit: EXIT.PRECONDITION, vi: "`{path}` đã có và không phải thư mục thật.", en: "`{path}` exists and is not a real folder.", hint_vi: "Đổi tên hoặc xoá nó, rồi chạy lại", hint_en: "Rename or remove it, then run it again" },
+  anchor_failed: { exit: EXIT.PRECONDITION, vi: "Không ghi được anchor: {cause}.", en: "The anchor could not be written: {cause}.", hint_vi: `Sửa nguyên nhân rồi chạy lại \`${personCmd("init")}\` (người chạy, ở checkout chính)`, hint_en: `Fix the cause, then run \`${personCmd("init")}\` again (a person, in the main checkout)` },
+  not_installed_v3: { exit: EXIT.PRECONDITION, vi: "Repo chưa cài trellis v3.", en: "trellis v3 is not installed in this repository.", hint_vi: `\`${personCmd("init")}\``, hint_en: `\`${personCmd("init")}\`` }
+};
+
+// src/core/errors.ts
+var MAX_VAR_CHARS = 200;
+var UNSAFE_VAR = /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}`]/u;
+function fill(template, vars) {
+  return template.replace(/\{(\w+)\}/g, (whole, name) => {
+    const value = vars[name];
+    if (value === void 0) return whole;
+    const text = String(value);
+    return text.length > MAX_VAR_CHARS || UNSAFE_VAR.test(text) ? "?" : text;
+  });
+}
+var INSTALL_HINT = {
+  vi: "Đọc `tr-install.log` (`<git-common-dir>/tr-check/{slug}/`; 40 dòng cuối đã in), ghi `blocked.md` (`tool_unavailable`) rồi dừng; không tự gõ lệnh cài của trình quản lý gói",
+  en: "Read `tr-install.log` (`<git-common-dir>/tr-check/{slug}/`; its last 40 lines were printed), write `blocked.md` (`tool_unavailable`) and stop; do not type the package manager's install yourself"
+};
+var ALTERNATES_HINT = {
+  vi: "trellis không merge repo dùng alternates: người xem `cat .git/objects/info/alternates` ở terminal, xoá nếu không phải của mình (`git repack -a -d` trước nếu đang dùng thật), rồi chạy lại lệnh vừa báo lỗi",
+  en: "trellis does not merge a repository that uses alternates: a person looks at `cat .git/objects/info/alternates` in a terminal and deletes it if it is not theirs (`git repack -a -d` first if it is really used), then runs the command that reported the error again"
+};
+var REVIEW_V1_HINT = {
+  vi: "review v1: làm xong trên trellis v1, hoặc `review seal` lại",
+  en: "review v1: finish it on trellis v1, or run `review seal` again"
+};
+var DECISIONS_HINT = {
+  vi: "`decisions.md`: tối đa 3 dòng `ngày · quyết định · vì sao · file`, mỗi dòng tối đa 300 ký tự, ngày `YYYY-MM-DD`, không ký tự điều khiển; sửa rồi commit trước khi `review seal`",
+  en: "`decisions.md`: at most 3 lines `date · decision · why · file`, each at most 300 characters, date `YYYY-MM-DD`, no control characters; fix it and commit before `review seal`"
+};
+var FORM = { vi: "`decisions.md` dòng {line} sai dạng: cần `ngày · quyết định · vì sao · file`, ngày `YYYY-MM-DD`", en: "`decisions.md` line {line} is malformed: need `date · decision · why · file`, date `YYYY-MM-DD`" };
+var DECISIONS_CAUSE = {
+  decisions_control: { vi: "`decisions.md` dòng {line} có ký tự cấm {cp}: xoá ký tự đó", en: "`decisions.md` line {line} has a forbidden character {cp}: delete it" },
+  decisions_lines: { vi: "`decisions.md` dòng {line} là dòng thứ 4: chỉ giữ tối đa 3 dòng", en: "`decisions.md` line {line} is a 4th line: keep at most 3" },
+  decisions_length: { vi: "`decisions.md` dòng {line} dài quá 300 ký tự: rút ngắn", en: "`decisions.md` line {line} is over 300 characters: shorten it" },
+  decisions_fields: FORM,
+  decisions_date: FORM
+};
+function render(code2, vars, lang) {
+  const entry = CODES[code2];
+  const viaInstall = code2 === "not_checked" && vars.via === "install";
+  const alternates = code2 === "objects_unsafe" && vars.cause === "alternates";
+  const reviewV1 = code2 === "schema_invalid" && vars.cause === "review_v1";
+  const decisions = code2 === "schema_invalid" && typeof vars.cause === "string" && vars.cause.startsWith("decisions_");
+  const hintVi = viaInstall ? INSTALL_HINT.vi : alternates ? ALTERNATES_HINT.vi : reviewV1 ? REVIEW_V1_HINT.vi : decisions ? (DECISIONS_CAUSE[String(vars.cause)] ?? DECISIONS_HINT).vi : entry.hint_vi;
+  const hintEn = viaInstall ? INSTALL_HINT.en : alternates ? ALTERNATES_HINT.en : reviewV1 ? REVIEW_V1_HINT.en : decisions ? (DECISIONS_CAUSE[String(vars.cause)] ?? DECISIONS_HINT).en : entry.hint_en;
+  return lang === "vi" ? { code: code2, message: fill(entry.vi, vars), hint: fill(hintVi, vars) } : { code: code2, message: fill(entry.en, vars), hint: fill(hintEn, vars) };
+}
+var TrellisError = class extends Error {
+  code;
+  vars;
+  exit;
+  constructor(code2, vars = {}) {
+    super(fill(CODES[code2].en, vars));
+    this.name = "TrellisError";
+    this.code = code2;
+    this.vars = Object.freeze({ ...vars });
+    this.exit = CODES[code2].exit;
+  }
+};
+
 // src/core/slug.ts
 var SLUG = /^[a-z0-9][a-z0-9-]{0,39}$/;
+
+// src/schema/fault.ts
+var DocumentFault = class extends Error {
+  field;
+  origin;
+  /** 1-based line the fault points at (an unclosed fence's opener), when known. */
+  line;
+  constructor(field, origin = {}, line) {
+    super(`unreadable document: ${field}`);
+    this.name = "DocumentFault";
+    this.field = field;
+    this.origin = origin;
+    this.line = line;
+  }
+};
+
+// src/schema/text.ts
+var UTF8 = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+function decodeText(bytes) {
+  if (bytes[0] === 239 && bytes[1] === 187 && bytes[2] === 191) throw new DocumentFault("(encoding)");
+  let text;
+  try {
+    text = UTF8.decode(bytes);
+  } catch {
+    throw new DocumentFault("(encoding)");
+  }
+  return text.replace(/\r\n/g, "\n");
+}
+
+// src/spectex/decisions.ts
+var decisionsRel = (slug) => `workflow/changes/${slug}/decisions.md`;
+var MAX_LINES = 3;
+var MAX_LINE_CHARS = 300;
+var MAX_BYTES = 4096;
+var SEPARATOR = " · ";
+var CONTROL = /[\p{Cc}\p{Cf}\p{Co}\p{Cs}\p{Zl}\p{Zp}]/u;
+var DATE = /^\d{4}-\d{2}-\d{2}$/;
+var refuse = (slug, field, cause, more = {}) => new TrellisError("schema_invalid", { file: decisionsRel(slug), field, name: "decisions", n: 1, cause, ...more });
+function parseDecisions(bytes, slug) {
+  if (bytes === null) return [];
+  if (bytes.length > MAX_BYTES) throw refuse(slug, "(file)", "decisions_size");
+  let text;
+  try {
+    text = decodeText(bytes);
+  } catch (e) {
+    if (e instanceof DocumentFault) throw refuse(slug, "(file)", "decisions_encoding");
+    throw e;
+  }
+  const lines = text.split("\n").map((raw, i) => ({ raw, n: i + 1 })).filter((l) => l.raw.trim() !== "");
+  if (lines.length > MAX_LINES) throw refuse(slug, `line ${lines[MAX_LINES].n}`, "decisions_lines", { line: lines[MAX_LINES].n });
+  return lines.map(({ raw, n }) => {
+    const at = `line ${n}`;
+    const bad2 = CONTROL.exec(raw);
+    if (bad2) throw refuse(slug, at, "decisions_control", { line: n, cp: `U+${bad2[0].codePointAt(0).toString(16).toUpperCase().padStart(4, "0")}` });
+    if ([...raw].length > MAX_LINE_CHARS) throw refuse(slug, at, "decisions_length", { line: n });
+    const fields = raw.split(SEPARATOR);
+    if (fields.length !== 4 || fields.some((f) => f.trim() === "")) throw refuse(slug, at, "decisions_fields", { line: n });
+    const [date, decision, reason, file] = fields;
+    if (!DATE.test(date)) throw refuse(slug, at, "decisions_date", { line: n });
+    return { date, decision, reason, file, text: raw };
+  });
+}
 
 // src/hook/gates.ts
 var EDIT_TOOLS = /* @__PURE__ */ new Set(["Edit", "Write", "MultiEdit", "NotebookEdit"]);
@@ -431,6 +605,21 @@ function targetOf(payload) {
   if (typeof raw !== "string" || raw === "") return null;
   if ((0, import_node_path5.isAbsolute)(raw)) return raw;
   return typeof p.cwd === "string" && (0, import_node_path5.isAbsolute)(p.cwd) ? (0, import_node_path5.resolve)(p.cwd, raw) : null;
+}
+var DECISIONS_PATH = /^workflow\/changes\/([^/]+)\/decisions\.md$/;
+function checkDecisionsWrite(payload, rel) {
+  const p = payload;
+  const slug = DECISIONS_PATH.exec(rel)?.[1];
+  const content = p.tool_input?.content;
+  if (p.tool_name !== "Write" || slug === void 0 || !SLUG.test(slug) || typeof content !== "string") return null;
+  try {
+    parseDecisions(Buffer.from(content, "utf8"), slug);
+    return null;
+  } catch (e) {
+    if (!(e instanceof TrellisError)) return null;
+    const cause = typeof e.vars.cause === "string" ? e.vars.cause : "decisions_fields";
+    return block2("decisions_format", `${rel} was not written (${cause}): keep at most 3 lines, each \`YYYY-MM-DD · decision · why · file\` (300 characters at most, no control characters). Free-form answers go to workflow/changes/${slug}/grill.md.`);
+  }
 }
 var GIT_WORD = /(?<![A-Za-z0-9_])(?:git|gh|trellis(?:-flow)?)(?![A-Za-z0-9_])/i;
 var INDIRECT = /(?<![A-Za-z0-9_])(?:eval|source|(?:ba|z|da|k)?sh(?:\s+--?[\w-]+)*\s+-\w*c)(?![A-Za-z0-9_])|\$['({]|`|(?:^|[;&|(\s])\.\s/i;
@@ -452,11 +641,13 @@ function checkGates(payload, home) {
     if (path === null) return null;
     const top = enclosingTrees((0, import_node_path5.dirname)(path))[0];
     if (top === void 0 || !(0, import_node_fs5.existsSync)((0, import_node_path5.join)(top, "workflow", "changes")) || classify(top, home).kind !== "v3") return null;
+    const rel = (0, import_node_path5.relative)(top, path).split(import_node_path5.sep).join("/");
+    if (rel === "" || rel.startsWith("../") || (0, import_node_path5.isAbsolute)(rel)) return null;
+    const bad2 = checkDecisionsWrite(payload, rel);
+    if (bad2 !== null) return bad2;
     const branch = gitText(top, ["symbolic-ref", "--quiet", "HEAD"]) ?? "";
     const slug = FEAT.exec(branch)?.[1];
     if (slug === void 0 || !SLUG.test(slug) || slug === "constraints") return null;
-    const rel = (0, import_node_path5.relative)(top, path).split(import_node_path5.sep).join("/");
-    if (rel === "" || rel.startsWith("../") || (0, import_node_path5.isAbsolute)(rel)) return null;
     const dir = `workflow/changes/${slug}`;
     const routeText = (0, import_node_fs5.readFileSync)((0, import_node_path5.join)(top, dir, "route.md"), "utf8");
     const inDir = (foldPath(rel) + "/").startsWith(foldPath(dir) + "/");
@@ -577,7 +768,7 @@ var MANIFEST = /^(package\.json|pyproject\.toml|go\.mod|Cargo\.toml|pom\.xml|bui
 var FENCE = /^```yaml trellis-constraints[ \t]*\r?\n([\s\S]*?)^```[ \t]*$/gm;
 var CHECKS_BLOCK = /^checks:[ \t]*\r?\n[ \t]+\S/m;
 var CHECKS_FLOW = /^checks:[ \t]*\{[ \t]*[^\s}]/m;
-var MAX_BYTES = 256 * 1024;
+var MAX_BYTES2 = 256 * 1024;
 var ONBOARD_LINE = 'no checks yet: the repo has a stack manifest but CONSTRAINTS.md lists no commands. Say "onboard" or type /tr:onboard.';
 function needsOnboard(top) {
   try {
@@ -589,7 +780,7 @@ function needsOnboard(top) {
     } catch {
       return true;
     }
-    if (!st.isFile() || st.size > MAX_BYTES) return false;
+    if (!st.isFile() || st.size > MAX_BYTES2) return false;
     const text = (0, import_node_fs7.readFileSync)(file, "utf8");
     return ![...text.matchAll(FENCE)].some((m) => CHECKS_BLOCK.test(m[1]) || CHECKS_FLOW.test(m[1]));
   } catch {
@@ -597,14 +788,14 @@ function needsOnboard(top) {
   }
 }
 
-// src/spectex/run.ts
-var import_node_child_process3 = require("node:child_process");
-var import_node_fs9 = require("node:fs");
+// src/hook/spectex.ts
+var import_node_fs13 = require("node:fs");
+var import_node_path10 = require("node:path");
 
 // src/core/binpath.ts
 var import_node_fs8 = require("node:fs");
 var import_node_path8 = require("node:path");
-var CONTROL = /[\u0000-\u001f]/;
+var CONTROL2 = /[\u0000-\u001f]/;
 function executable(path) {
   try {
     (0, import_node_fs8.accessSync)(path, import_node_fs8.constants.X_OK);
@@ -641,7 +832,7 @@ function isInside(path, root) {
 var rootList = (roots) => roots === void 0 ? [] : typeof roots === "string" ? [roots] : roots;
 var inRepo = (path, roots) => rootList(roots).some((root) => isInside(path, root));
 function safePath(path, roots) {
-  return (path ?? "").split(":").filter((dir) => (0, import_node_path8.isAbsolute)(dir) && !CONTROL.test(dir) && !inRepo(dir, roots)).join(":");
+  return (path ?? "").split(":").filter((dir) => (0, import_node_path8.isAbsolute)(dir) && !CONTROL2.test(dir) && !inRepo(dir, roots)).join(":");
 }
 function resolveBin(name, path, roots) {
   const candidate = safePath(path, roots).split(":").filter((dir) => dir !== "").map((dir) => (0, import_node_path8.join)(dir, name)).find(executable);
@@ -651,6 +842,8 @@ function resolveBin(name, path, roots) {
 }
 
 // src/spectex/run.ts
+var import_node_child_process3 = require("node:child_process");
+var import_node_fs9 = require("node:fs");
 function makeRunSpectex(env2, roots) {
   return (args, input, timeoutMs) => {
     const bin = resolveBin("spectex", env2.PATH, roots);
@@ -685,133 +878,139 @@ function spectexRoots(top) {
   return [...roots];
 }
 
+// src/spectex/status.ts
+var import_node_fs10 = require("node:fs");
+var MAX_ROWS = 1e3;
+var MAX_NAME = 40;
+var ANSI = /\u001b(?:\[[0-?]*[ -/]*[@-~]|\][^\u0007\u001b]*(?:\u0007|\u001b\\)?|[@-Z\\-_])/g;
+var NAME_UNSAFE = /[^\p{L}\p{N}._@/+-]/gu;
+var safeSourceName = (raw) => raw.replace(ANSI, "").replace(NAME_UNSAFE, "?").slice(0, MAX_NAME);
+var MAX_SERVERS = 50;
+var SHA = /^[0-9a-f]{40,64}$/;
+var VERSION2 = /^\d{1,4}\.\d{1,4}\.\d{1,4}$/;
+var SAFE_REINDEX_VERSION = "0.33.1";
+function reindexSafe(version) {
+  return version !== null && atLeast(version, SAFE_REINDEX_VERSION);
+}
+function atLeast(version, floor) {
+  const [a, b, c] = version.split(".").map(Number);
+  const [x, y, z] = floor.split(".").map(Number);
+  return a !== x ? a > x : b !== y ? b > y : c >= z;
+}
+var LEARN_VERSION = "0.33.0";
+var learnVersionOk = (version) => version !== null && atLeast(version, LEARN_VERSION);
+var READONLY_DB = /: attempt to write a readonly database$/;
+var isPort = (p) => typeof p === "number" && Number.isInteger(p) && p > 0 && p < 65536;
+function writeServersOf(servers) {
+  if (!Array.isArray(servers)) return [];
+  const out = [];
+  for (const row of servers.slice(0, MAX_SERVERS)) {
+    if (typeof row !== "object" || row === null) continue;
+    const r = row;
+    if (r.read_only !== false || r.alive !== true) continue;
+    out.push({ key: typeof r.key === "string" ? safeSourceName(r.key) : "?", port: isPort(r.port) ? r.port : null });
+  }
+  return out;
+}
+var onlyReadonly = (errors) => Array.isArray(errors) && errors.length > 0 && errors.every((e) => typeof e === "string" && READONLY_DB.test(e));
+function parseSpectexStatus(stdout) {
+  try {
+    const j = JSON.parse(stdout);
+    if (typeof j !== "object" || j === null) return null;
+    const o = j;
+    if (o.schema_version !== 1 || !Array.isArray(o.sources)) return null;
+    const never = [];
+    const commits = [];
+    for (const row of o.sources.slice(0, MAX_ROWS)) {
+      if (typeof row !== "object" || row === null || typeof row.name !== "string") return null;
+      if (row.last_indexed == null) never.push(safeSourceName(row.name));
+      const c = row.last_commit;
+      if (typeof c === "string" && SHA.test(c)) commits.push(c);
+    }
+    const lr = o.last_reindex;
+    const failed = typeof lr === "object" && lr !== null && lr.ok === false;
+    const readonly = failed && onlyReadonly(lr.errors);
+    const lastReindexFailed = failed && !readonly;
+    return { sources: Math.min(o.sources.length, MAX_ROWS), neverIndexed: never, lastReindexFailed, lastReindexReadonly: readonly, lastCommits: commits, version: typeof o.version === "string" && VERSION2.test(o.version) ? o.version : null, writeServers: writeServersOf(o.servers) };
+  } catch {
+    return null;
+  }
+}
+var MAX_LISTED = 5;
+var namesOf = (names) => `${names.slice(0, MAX_LISTED).join(", ")}${names.length > MAX_LISTED ? ` (+${names.length - MAX_LISTED} more)` : ""}`;
+function hasSpectexDir(top) {
+  try {
+    return (0, import_node_fs10.lstatSync)(`${top}/.spectex`).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+// src/spectex/lessons.ts
+var import_node_crypto2 = require("node:crypto");
+var MAX_CLAIM = 300;
+var MAX_FILE = 200;
+var MAX_LENS = 40;
+var MAX_PER_LINE = 50;
+var MAX_METRICS_BYTES = 1 << 20;
+var SEVERITIES = ["Critical", "Required"];
+var SLUG3 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/;
+var Bad = class extends Error {
+};
+var bad = (cause) => {
+  throw new Bad(cause);
+};
+var isObject = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
+function lessonOf(slug, raw) {
+  if (!isObject(raw)) return bad("lessons_json");
+  const { severity, lens, file, line, claim } = raw;
+  if (typeof severity !== "string" || typeof lens !== "string" || typeof file !== "string" || typeof claim !== "string" || !Number.isInteger(line) || line < 0) return bad("lessons_json");
+  if (!SEVERITIES.includes(severity)) return bad("lessons_severity");
+  if ([lens, file, claim].some((s) => CONTROL.test(s))) return bad("lessons_control");
+  if ([...claim].length > MAX_CLAIM || [...file].length > MAX_FILE || [...lens].length > MAX_LENS || claim.trim() === "" || file.trim() === "" || lens.trim() === "") return bad("lessons_length");
+  const where = `${file}:${line}`;
+  const key = (0, import_node_crypto2.createHash)("sha256").update(JSON.stringify([slug, severity, lens, where, claim])).digest("hex");
+  return { key, slug, severity, lens, where, claim };
+}
+function parseLessons(bytes) {
+  if (bytes.length > MAX_METRICS_BYTES) return { lessons: [], rejected: [{ line: 0, cause: "lessons_size", key: `size:${(0, import_node_crypto2.createHash)("sha256").update(bytes).digest("hex")}` }] };
+  const lessons = /* @__PURE__ */ new Map();
+  const rejected = [];
+  bytes.toString("utf8").split("\n").forEach((raw, i) => {
+    if (raw.trim() === "") return;
+    try {
+      let o;
+      try {
+        o = JSON.parse(raw);
+      } catch {
+        return bad("lessons_json");
+      }
+      if (!isObject(o) || typeof o.slug !== "string" || !SLUG3.test(o.slug)) return bad("lessons_json");
+      if (o.lessons === void 0) return;
+      if (!Array.isArray(o.lessons)) return bad("lessons_json");
+      if (o.lessons.length > MAX_PER_LINE) return bad("lessons_length");
+      const found = o.lessons.map((x) => lessonOf(o.slug, x));
+      for (const l of found) lessons.set(l.key, l);
+    } catch (e) {
+      if (!(e instanceof Bad)) throw e;
+      rejected.push({ line: i + 1, cause: e.message, key: `line:${(0, import_node_crypto2.createHash)("sha256").update(raw).digest("hex")}` });
+    }
+  });
+  return { lessons: [...lessons.values()], rejected };
+}
+
 // src/spectex/source.ts
 var import_node_child_process4 = require("node:child_process");
-var import_node_crypto2 = require("node:crypto");
-var import_node_fs10 = require("node:fs");
-var import_node_os = require("node:os");
+var import_node_crypto3 = require("node:crypto");
+var import_node_fs11 = require("node:fs");
 var import_node_path9 = require("node:path");
-
-// src/core/exit.ts
-var EXIT = { OK: 0, FAIL: 1, USAGE: 2, PRECONDITION: 3, PARTIAL: 4, CANCELLED: 130 };
-
-// src/core/codes.ts
-var CODES = {
-  usage_error: { exit: EXIT.USAGE, vi: "Sai cú pháp lệnh `{cmd}`.", en: "Invalid usage of `{cmd}`.", hint_vi: `\`${personCmd("{cmd} --help")}\``, hint_en: `\`${personCmd("{cmd} --help")}\`` },
-  human_only: { exit: EXIT.USAGE, vi: "`{cmd}` chỉ người chạy được, trong terminal.", en: "`{cmd}` can only be run by a person, in a terminal.", hint_vi: `Mở terminal ngoài repo và chạy \`${personCmd("{cmd}")}\``, hint_en: `Open a terminal outside the repository and run \`${personCmd("{cmd}")}\`` },
-  schema_invalid: { exit: EXIT.USAGE, vi: "`{file}`: trường `{field}` sai hoặc không được phép.", en: "`{file}`: field `{field}` is invalid or not allowed.", hint_vi: "Sửa theo schema `{name}` v{n}", hint_en: "Fix it to match schema `{name}` v{n}" },
-  catalog_invalid: { exit: EXIT.USAGE, vi: "Catalog: `{file}` sai ở `{field}`.", en: "Catalog: `{file}` is invalid at `{field}`.", hint_vi: "Sửa file catalog (hoặc file ghi đè trong `.trellis/catalog/`)", hint_en: "Fix the catalog file (or the override in `.trellis/catalog/`)" },
-  not_git_repo: { exit: EXIT.PRECONDITION, vi: "`{dir}` không phải repo git.", en: "`{dir}` is not a git repository.", hint_vi: "`git init` hoặc `--cwd`", hint_en: "`git init`, or pass `--cwd`" },
-  not_initialized: { exit: EXIT.PRECONDITION, vi: "Repo chưa cài trellis.", en: "trellis is not installed in this repository.", hint_vi: `\`${personCmd("init")}\`, chạy từ ngoài repo (repo private: cần quyền git vào repo); nếu SSH mặc định thuộc tài khoản khác: \`npx -y "git+ssh://git@<host>/dante-trinh/trellis-flow.git#v${VERSION}" init\`, thay \`<host>\` bằng alias SSH của bạn`, hint_en: `\`${personCmd("init")}\`, run from outside the repository (private repo: needs git access to it); if your default SSH key belongs to another account: \`npx -y "git+ssh://git@<host>/dante-trinh/trellis-flow.git#v${VERSION}" init\`, replace \`<host>\` with your SSH alias` },
-  schema_newer: { exit: EXIT.PRECONDITION, vi: "`{file}` do trellis mới hơn ghi (v{n}).", en: "`{file}` was written by a newer trellis (v{n}).", hint_vi: "Nâng trellis: chạy `init` của bản mới, ví dụ `npx --yes github:dante-trinh/trellis-flow#<tag mới> init --cwd <top>` (repo private: cần quyền git vào repo)", hint_en: "Upgrade trellis: run `init` of the new version, e.g. `npx --yes github:dante-trinh/trellis-flow#<new tag> init --cwd <top>` (private repo: needs git access to it)" },
-  node_too_old: { exit: EXIT.PRECONDITION, vi: "Node {v} < {min}.", en: "Node {v} < {min}.", hint_vi: "Cài Node ≥ {min}", hint_en: "Install Node ≥ {min}" },
-  git_too_old: { exit: EXIT.PRECONDITION, vi: "git {v} < {min}.", en: "git {v} < {min}.", hint_vi: "Nâng git", hint_en: "Upgrade git" },
-  version_too_old: { exit: EXIT.PRECONDITION, vi: "Claude Code {v} < {min}.", en: "Claude Code {v} < {min}.", hint_vi: "`claude update`", hint_en: "`claude update`" },
-  dirty_tree: { exit: EXIT.PRECONDITION, vi: "Working tree có thay đổi chưa commit.", en: "The working tree has uncommitted changes.", hint_vi: "Commit file trellis cần ghi (nếu là file của lần cài trước chưa commit: chạy lệnh git ở màn cuối lần đó), hoặc `--allow-dirty` (cài, không tạo commit)", hint_en: "Commit the file trellis needs to write (files of an earlier uncommitted install: run the git command from that install's last screen), or pass `--allow-dirty` (installs without a commit)" },
-  detached_head: { exit: EXIT.PRECONDITION, vi: "HEAD tách rời hoặc đang merge / rebase.", en: "HEAD is detached, or a merge / rebase is in progress.", hint_vi: "Hoàn tất thao tác git đang dở", hint_en: "Finish the git operation in progress" },
-  lock_held: { exit: EXIT.PRECONDITION, vi: "Một lệnh trellis khác đang chạy (pid {pid}).", en: "Another trellis command is running (pid {pid}).", hint_vi: "Chờ, hoặc kiểm tiến trình", hint_en: "Wait, or check the process" },
-  manifest_invalid: { exit: EXIT.PRECONDITION, vi: "Manifest cài hỏng hoặc thiếu.", en: "The install manifest is missing or broken.", hint_vi: `\`${personCmd("doctor")}\`; cài lại bằng \`init --force\``, hint_en: `\`${personCmd("doctor")}\`; reinstall with \`init --force\`` },
-  locally_modified: { exit: EXIT.PRECONDITION, vi: "{n} file của trellis bị sửa tay.", en: "{n} trellis file(s) were edited by hand.", hint_vi: "Xem `git diff -- workflow/bin`; cài lại bằng `init --force`", hint_en: "See `git diff -- workflow/bin`; reinstall with `init --force`" },
-  doctor_failed: { exit: EXIT.FAIL, vi: "`doctor`: {n} mục kiểm `fail`.", en: "`doctor`: {n} check(s) failed.", hint_vi: "Xem từng mục; mục ghi `doctor --fix` thì người chạy lệnh đó ở terminal", hint_en: "See each check; for the ones that say `doctor --fix`, a person runs that in a terminal" },
-  unborn_head: { exit: EXIT.PRECONDITION, vi: "Repo chưa có commit nào; `{cmd}` cần HEAD.", en: "The repository has no commits; `{cmd}` needs HEAD.", hint_vi: "Tạo commit đầu tiên (commit các file `init` đã ghi), rồi chạy lại", hint_en: "Make the first commit (commit the files `init` wrote), then run it again" },
-  os_unsupported: { exit: EXIT.PRECONDITION, vi: "Hệ điều hành `{os}` chưa được hỗ trợ.", en: "Operating system `{os}` is not supported.", hint_vi: "Dùng macOS, Linux, hoặc WSL2 với repo nằm trong filesystem của WSL", hint_en: "Use macOS, Linux, or WSL2 with the repository inside the WSL filesystem" },
-  not_yet_supported: { exit: EXIT.PRECONDITION, vi: "`{feature}` chưa có ở trellis {version}.", en: "`{feature}` is not available in trellis {version}.", hint_vi: "Chờ bản trellis có `{feature}`", hint_en: "Wait for a trellis release with `{feature}`" },
-  linked_worktree: { exit: EXIT.PRECONDITION, vi: "`{cmd}` chạy ở checkout chính, không ở worktree phụ.", en: "`{cmd}` runs in the main checkout, not in a linked worktree.", hint_vi: "`cd {dir}` rồi chạy lại", hint_en: "`cd {dir}` and run it again" },
-  settings_unsafe: { exit: EXIT.PRECONDITION, vi: "`{path}`: `{key}` làm guardrail của trellis vô hiệu; không ghi gì.", en: "`{path}`: `{key}` disables trellis guardrails; nothing was written.", hint_vi: "Sửa `{key}` trong `{path}`, rồi chạy lại", hint_en: "Change `{key}` in `{path}`, then run it again" },
-  replace_refs_present: { exit: EXIT.PRECONDITION, vi: "`refs/replace` có mục (đầu tiên: `{ref}`): git của người có thể cho ra nội dung khác với trellis.", en: "`refs/replace` has entries (first: `{ref}`): a person's git can show other bytes than trellis.", hint_vi: "Người xem `git for-each-ref refs/replace` ở terminal (cả `packed-refs`) và xoá mục không phải của mình bằng `git update-ref -d` trước khi chạy lệnh git nào ghi cây làm việc", hint_en: "A person looks at `git for-each-ref refs/replace` in a terminal (`packed-refs` too) and removes entries that are not theirs with `git update-ref -d` before running any git command that writes the work tree" },
-  objects_unsafe: { exit: EXIT.PRECONDITION, vi: "Kho object của git không đáng tin ({cause}): {detail}", en: "The git object store cannot be trusted ({cause}): {detail}", hint_vi: "Đừng chạy lệnh git nào ghi cây làm việc (`switch`, `checkout`, `merge`, `rebase`, `pull`). Người chạy `git fsck --no-dangling` ở terminal; object lỏng hỏng: xoá file nó nêu rồi `git fetch origin`; object hỏng trong pack: clone lại repo; index hỏng (sandbox ghi được `.git/index`, `fsck` kiểm cả index): xem `git status`, dựng lại bằng `git read-tree HEAD` ở terminal; chỉ lỗi định dạng của commit cũ (`badTimezone`, `missingEmail`…), không phải `hash-path mismatch` / `corrupt` / `missing`: đặt `fsck.<msg-id>=warn` hay `fsck.skipList` trong config của người. Rồi chạy lại lệnh vừa báo lỗi", hint_en: "Run no git command that writes the work tree (`switch`, `checkout`, `merge`, `rebase`, `pull`). A person runs `git fsck --no-dangling` in a terminal; a bad loose object: delete the file it names, then `git fetch origin`; a bad object in a pack: clone the repository again; a bad index (the sandbox can write `.git/index`, and `fsck` checks the index): look at `git status`, rebuild it with `git read-tree HEAD` in a terminal; only a format error of an old commit (`badTimezone`, `missingEmail`…), not `hash-path mismatch` / `corrupt` / `missing`: set `fsck.<msg-id>=warn` or `fsck.skipList` in your own config. Then run the command that reported the error again" },
-  fetch_failed: { exit: EXIT.PRECONDITION, vi: "Không fetch được từ `{remote}`.", en: "Cannot fetch from `{remote}`.", hint_vi: "Kiểm mạng / quyền (credential helper, SSH agent), rồi chạy lại", hint_en: "Check the network and access (credential helper, SSH agent), then run it again" },
-  target_diverged: { exit: EXIT.PRECONDITION, vi: "`{branch}` local có commit không có trên `origin/{branch}`.", en: "Local `{branch}` has commits that `origin/{branch}` does not.", hint_vi: "Người push các commit của `{branch}` local, hoặc tự đưa nhánh đó về khớp remote bằng cách của mình (không phải việc của agent), rồi chạy lại", hint_en: "Push the local `{branch}` commits, or bring that branch in line with the remote yourself, your own way (not a job for the agent), then run it again" },
-  not_checked: { exit: EXIT.PRECONDITION, vi: "`{slug}` chưa được kiểm trên cây kết quả merge ({cause}).", en: "`{slug}` is not checked on the merge result tree ({cause}).", hint_vi: "Lead chạy lệnh kiểm của feature (`check {slug}`) trong phiên của feature (sandbox; không chạy ở terminal: lệnh kiểm là code của feature), xem `data` và `tr-check.log`, rồi `review seal` lại", hint_en: "The lead runs the feature check (`check {slug}`) in the feature's session (sandboxed; not in a terminal: the checks are the feature's code), reads `data` and `tr-check.log`, then `review seal` again" },
-  file_changed: { exit: EXIT.FAIL, vi: "`{path}` đổi trong lúc cài; đã rollback, không ghi gì.", en: "`{path}` changed during the install; rolled back, nothing was written.", hint_vi: "Chạy lại `init`", hint_en: "Run `init` again" },
-  file_unparsable: { exit: EXIT.FAIL, vi: "`{path}` không parse được; không ghi gì.", en: "`{path}` cannot be parsed; nothing was written.", hint_vi: "Sửa file cho đúng cú pháp, rồi chạy lại", hint_en: "Fix the file's syntax, then run it again" },
-  marker_invalid: { exit: EXIT.FAIL, vi: "Marker `{block}` trong `{path}` bị trùng hoặc hỏng; không ghi gì.", en: "Marker `{block}` in `{path}` is duplicated or broken; nothing was written.", hint_vi: "Sửa tay cho còn đúng một cặp begin / end, rồi chạy lại", hint_en: "Leave exactly one begin / end pair by hand, then run it again" },
-  path_conflict: { exit: EXIT.FAIL, vi: "`{path}` đã có và không phải của trellis; không ghi gì.", en: "`{path}` exists and does not belong to trellis; nothing was written.", hint_vi: "Đổi tên / xoá file, hoặc `--force` (có backup)", hint_en: "Rename or remove the file, or pass `--force` (it is backed up)" },
-  path_conflict_outside: { exit: EXIT.FAIL, vi: "`{path}` nằm ngoài repo, đã có và trellis không ghi nhận là của nó (manifest thiếu hoặc file đã đổi); không ghi gì.", en: "`{path}` is outside the repository and exists, and trellis has no record of it (the manifest is missing or the file changed); nothing was written.", hint_vi: "`--force` không áp dụng cho file ngoài repo: dời file đó sang chỗ khác rồi chạy lại init", hint_en: "`--force` does not apply outside the repository: move that file aside and run init again" },
-  rollback_incomplete: { exit: EXIT.PARTIAL, vi: "Rollback không trọn; backup ở `{dir}`.", en: "Rollback did not finish; the backup is in `{dir}`.", hint_vi: "Khôi phục tay từ backup", hint_en: "Restore by hand from the backup" },
-  disk_full: { exit: EXIT.FAIL, vi: "Hết chỗ trống khi ghi `{path}`.", en: "Out of disk space while writing `{path}`.", hint_vi: "Giải phóng ổ đĩa; xem `data.rolled_back`", hint_en: "Free disk space; see `data.rolled_back`" },
-  hook_internal: { exit: EXIT.USAGE, vi: "Hook lỗi nội bộ ({event}).", en: "Internal hook error ({event}).", hint_vi: `Kiểm \`.claude/hooks/trellis-hook.cjs\` và đường dẫn node trong \`.claude/settings.local.json\`; người chạy lại \`${personCmd("init")}\``, hint_en: `Check \`.claude/hooks/trellis-hook.cjs\` and the node path in \`.claude/settings.local.json\`; a person runs \`${personCmd("init")}\` again` },
-  worktree_refused: { exit: EXIT.USAGE, vi: "trellis làm việc trên một nhánh ngay ở checkout này, không tạo worktree.", en: "trellis works on a branch in this checkout; it does not create worktrees.", hint_vi: "Làm tiếp trên nhánh hiện tại, trong phiên này", hint_en: "Keep working on the current branch, in this session" },
-  cancelled: { exit: EXIT.CANCELLED, vi: "Đã huỷ.", en: "Cancelled.", hint_vi: "", hint_en: "" },
-  internal_error: { exit: EXIT.FAIL, vi: "Lỗi nội bộ trong `{cmd}`.", en: "Internal error in `{cmd}`.", hint_vi: "Chạy lại; nếu còn lỗi, gửi stderr cho người bảo trì trellis", hint_en: "Run it again; if it still fails, send stderr to the trellis maintainers" },
-  // v3 installer (K1b)
-  unknown_pack: { exit: EXIT.USAGE, vi: "Không có pack `{id}` trong catalog.", en: "There is no pack `{id}` in the catalog.", hint_vi: "`init --list packs`", hint_en: "`init --list packs`" },
-  unknown_adapter: { exit: EXIT.USAGE, vi: "Không có adapter `{id}` trong catalog.", en: "There is no adapter `{id}` in the catalog.", hint_vi: "`init --list adapters`", hint_en: "`init --list adapters`" },
-  unresolved_question: { exit: EXIT.USAGE, vi: "`init` cần một câu trả lời: {question}.", en: "`init` needs an answer: {question}.", hint_vi: "Thêm cờ nêu ở trên, hoặc chạy `init` trong terminal để được hỏi", hint_en: "Add the flag named above, or run `init` in a terminal to be asked" },
-  workspace_invalid: { exit: EXIT.USAGE, vi: "`trellis.workspace.yaml` sai: `{field}`.", en: "`trellis.workspace.yaml` is invalid: `{field}`.", hint_vi: "Sửa file rồi chạy lại `init`", hint_en: "Fix the file, then run `init` again" },
-  workspace_repo_state: { exit: EXIT.PRECONDITION, vi: "Repo `{dir}` của workspace {why}.", en: "The workspace repo `{dir}` {why}.", hint_vi: "Chuyển nó về nhánh đích, commit hoặc stash thay đổi, rồi chạy lại `init`", hint_en: "Switch it to its target branch, commit or stash its changes, then run `init` again" },
-  bot_dir_conflict: { exit: EXIT.PRECONDITION, vi: "`{path}` đã có và không phải thư mục thật.", en: "`{path}` exists and is not a real folder.", hint_vi: "Đổi tên hoặc xoá nó, rồi chạy lại", hint_en: "Rename or remove it, then run it again" },
-  anchor_failed: { exit: EXIT.PRECONDITION, vi: "Không ghi được anchor: {cause}.", en: "The anchor could not be written: {cause}.", hint_vi: `Sửa nguyên nhân rồi chạy lại \`${personCmd("init")}\` (người chạy, ở checkout chính)`, hint_en: `Fix the cause, then run \`${personCmd("init")}\` again (a person, in the main checkout)` },
-  not_installed_v3: { exit: EXIT.PRECONDITION, vi: "Repo chưa cài trellis v3.", en: "trellis v3 is not installed in this repository.", hint_vi: `\`${personCmd("init")}\``, hint_en: `\`${personCmd("init")}\`` }
-};
-
-// src/core/errors.ts
-var MAX_VAR_CHARS = 200;
-var UNSAFE_VAR = /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}`]/u;
-function fill(template, vars) {
-  return template.replace(/\{(\w+)\}/g, (whole, name) => {
-    const value = vars[name];
-    if (value === void 0) return whole;
-    const text = String(value);
-    return text.length > MAX_VAR_CHARS || UNSAFE_VAR.test(text) ? "?" : text;
-  });
-}
-var INSTALL_HINT = {
-  vi: "Đọc `tr-install.log` (`<git-common-dir>/tr-check/{slug}/`; 40 dòng cuối đã in), ghi `blocked.md` (`tool_unavailable`) rồi dừng; không tự gõ lệnh cài của trình quản lý gói",
-  en: "Read `tr-install.log` (`<git-common-dir>/tr-check/{slug}/`; its last 40 lines were printed), write `blocked.md` (`tool_unavailable`) and stop; do not type the package manager's install yourself"
-};
-var ALTERNATES_HINT = {
-  vi: "trellis không merge repo dùng alternates: người xem `cat .git/objects/info/alternates` ở terminal, xoá nếu không phải của mình (`git repack -a -d` trước nếu đang dùng thật), rồi chạy lại lệnh vừa báo lỗi",
-  en: "trellis does not merge a repository that uses alternates: a person looks at `cat .git/objects/info/alternates` in a terminal and deletes it if it is not theirs (`git repack -a -d` first if it is really used), then runs the command that reported the error again"
-};
-var REVIEW_V1_HINT = {
-  vi: "review v1: làm xong trên trellis v1, hoặc `review seal` lại",
-  en: "review v1: finish it on trellis v1, or run `review seal` again"
-};
-var DECISIONS_HINT = {
-  vi: "`decisions.md`: tối đa 3 dòng `ngày · quyết định · vì sao · file`, mỗi dòng tối đa 300 ký tự, ngày `YYYY-MM-DD`, không ký tự điều khiển; sửa rồi commit trước khi `review seal`",
-  en: "`decisions.md`: at most 3 lines `date · decision · why · file`, each at most 300 characters, date `YYYY-MM-DD`, no control characters; fix it and commit before `review seal`"
-};
-var FORM = { vi: "`decisions.md` dòng {line} sai dạng: cần `ngày · quyết định · vì sao · file`, ngày `YYYY-MM-DD`", en: "`decisions.md` line {line} is malformed: need `date · decision · why · file`, date `YYYY-MM-DD`" };
-var DECISIONS_CAUSE = {
-  decisions_control: { vi: "`decisions.md` dòng {line} có ký tự cấm {cp}: xoá ký tự đó", en: "`decisions.md` line {line} has a forbidden character {cp}: delete it" },
-  decisions_lines: { vi: "`decisions.md` dòng {line} là dòng thứ 4: chỉ giữ tối đa 3 dòng", en: "`decisions.md` line {line} is a 4th line: keep at most 3" },
-  decisions_length: { vi: "`decisions.md` dòng {line} dài quá 300 ký tự: rút ngắn", en: "`decisions.md` line {line} is over 300 characters: shorten it" },
-  decisions_fields: FORM,
-  decisions_date: FORM
-};
-function render(code2, vars, lang) {
-  const entry = CODES[code2];
-  const viaInstall = code2 === "not_checked" && vars.via === "install";
-  const alternates = code2 === "objects_unsafe" && vars.cause === "alternates";
-  const reviewV1 = code2 === "schema_invalid" && vars.cause === "review_v1";
-  const decisions = code2 === "schema_invalid" && typeof vars.cause === "string" && vars.cause.startsWith("decisions_");
-  const hintVi = viaInstall ? INSTALL_HINT.vi : alternates ? ALTERNATES_HINT.vi : reviewV1 ? REVIEW_V1_HINT.vi : decisions ? (DECISIONS_CAUSE[String(vars.cause)] ?? DECISIONS_HINT).vi : entry.hint_vi;
-  const hintEn = viaInstall ? INSTALL_HINT.en : alternates ? ALTERNATES_HINT.en : reviewV1 ? REVIEW_V1_HINT.en : decisions ? (DECISIONS_CAUSE[String(vars.cause)] ?? DECISIONS_HINT).en : entry.hint_en;
-  return lang === "vi" ? { code: code2, message: fill(entry.vi, vars), hint: fill(hintVi, vars) } : { code: code2, message: fill(entry.en, vars), hint: fill(hintEn, vars) };
-}
-var TrellisError = class extends Error {
-  code;
-  vars;
-  exit;
-  constructor(code2, vars = {}) {
-    super(fill(CODES[code2].en, vars));
-    this.name = "TrellisError";
-    this.code = code2;
-    this.vars = Object.freeze({ ...vars });
-    this.exit = CODES[code2].exit;
-  }
-};
-
-// src/spectex/source.ts
 var BRANCH2 = /^[A-Za-z0-9._][A-Za-z0-9._/-]{0,199}$/;
 var GLOB_SHAPE = /^workflow\/changes\/[^/]+\/decisions\.md$/;
 var DECISIONS_NAME = /decisions\.md$/i;
-var SLUG3 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/;
-var SHA = /^[0-9a-f]{40,64}$/;
+var SLUG4 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/;
+var SHA2 = /^[0-9a-f]{40,64}$/;
 var SAFE2 = ["--no-replace-objects", "-c", "core.commitGraph=false", "-c", "core.fsmonitor=false", "-c", "core.pager=cat", "-c", "core.attributesFile=/dev/null", "-c", "core.hooksPath=/dev/null", "-c", "gpg.program="];
 var LOCAL_MS = 3e3;
-var REMOTE_MS = 15e3;
 function targetOf2(top, home) {
   try {
     return readAnchor(home, repoIdOf(top))?.targetBranch ?? null;
@@ -821,7 +1020,6 @@ function targetOf2(top, home) {
 }
 var localOk = () => false;
 var REMOTE_URL = /^(https:\/\/[A-Za-z0-9.-]+(:\d+)?\/[\x21-\x7e]+|ssh:\/\/([A-Za-z0-9._-]+@)?[A-Za-z0-9.-]+(:\d+)?\/[\x21-\x7e]+|[A-Za-z0-9._-]+@[A-Za-z0-9.-]+:[A-Za-z0-9._~][\x21-\x7e]*)$/;
-var transport = () => ["-c", "protocol.allow=never", "-c", "protocol.https.allow=always", "-c", "protocol.ssh.allow=always", ...localOk() ? ["-c", "protocol.file.allow=always"] : [], "-c", "remote.origin.uploadpack=git-upload-pack", "-c", "core.sshCommand=ssh"];
 function run(top, args, timeoutMs, input, cwd = top) {
   const sock = process.env.SSH_AUTH_SOCK;
   const e = { ...env(), GIT_CONFIG_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: "/dev/null", GIT_ASKPASS: "/bin/false", GIT_SSH_COMMAND: "ssh -o BatchMode=yes", ...sock === void 0 ? {} : { SSH_AUTH_SOCK: sock } };
@@ -829,45 +1027,29 @@ function run(top, args, timeoutMs, input, cwd = top) {
   if (r.error !== void 0 || r.status === null) throw new TrellisError("fetch_failed", { remote: "origin" });
   return { status: r.status, stdout: r.stdout };
 }
-var NO_HELPER = (target) => `origin (it could not be read without your credential helper or keys: use an ssh remote, or check the SHA of ${target} on the host yourself and run with --commit <sha>)`;
-function lsRemote(top, url, target, ms) {
-  const empty = (0, import_node_fs10.mkdtempSync)((0, import_node_path9.join)((0, import_node_os.tmpdir)(), "trellis-lsremote-"));
-  try {
-    const ls = run(top, [...transport(), "ls-remote", "--", url, `refs/heads/${target}`], ms, void 0, empty);
-    const row = ls.status === 0 ? ls.stdout.toString("utf8").split("\n").map((x) => x.split("	")).find((f) => f[1] === `refs/heads/${target}`) : void 0;
-    return row?.[0] ?? "";
-  } finally {
-    (0, import_node_fs10.rmSync)(empty, { recursive: true, force: true });
-  }
-}
-function resolveTarget(top, target, explicit = null, remoteMs = REMOTE_MS) {
-  if (!BRANCH2.test(target) || target.includes("..")) throw new TrellisError("not_installed_v3");
-  const replace = run(top, ["for-each-ref", "--format=%(refname)", "refs/replace"], LOCAL_MS).stdout.toString("utf8").trim();
-  if (replace !== "") throw new TrellisError("replace_refs_present", { ref: replace.split("\n")[0] });
-  const l = run(top, ["rev-parse", "--verify", "--quiet", `refs/heads/${target}^{commit}`], LOCAL_MS);
-  const local = l.status === 0 && SHA.test(l.stdout.toString("utf8").trim()) ? l.stdout.toString("utf8").trim() : null;
-  if (explicit !== null && explicit !== local) throw new TrellisError("usage_error", { cmd: "decisions --commit" });
+function originFacts(top) {
   const url = run(top, ["config", "--local", "--get", "remote.origin.url"], LOCAL_MS).stdout.toString("utf8").trim();
   const urlOk = url !== "" && (REMOTE_URL.test(url) || localOk() && (url.startsWith("/") || url.startsWith("file://")));
   const rewritten = url !== "" && run(top, ["config", "--local", "--get-regexp", "^url\\."], LOCAL_MS).status === 0;
-  if (explicit !== null && (!urlOk || rewritten)) return { commit: explicit, source: "person", url: null, why: url === "" ? "no_origin" : "unreadable" };
-  if (url === "") throw new TrellisError("fetch_failed", { remote: "origin (none: check the SHA of the target yourself and pass --commit <sha>)" });
-  if (!urlOk) throw new TrellisError("fetch_failed", { remote: "origin (its URL is not https://, ssh:// or user@host:path)" });
-  if (rewritten) throw new TrellisError("fetch_failed", { remote: "origin (the repository config rewrites URLs with url.<base>.insteadOf)" });
-  const sha = lsRemote(top, url, target, remoteMs);
-  if (!SHA.test(sha)) {
-    if (explicit !== null) return { commit: explicit, source: "person", url, why: "unreadable" };
-    throw new TrellisError("fetch_failed", { remote: NO_HELPER(target) });
-  }
-  if (explicit !== null && explicit !== sha) throw new TrellisError("target_diverged", { branch: target });
-  if (local !== null && local !== sha) throw new TrellisError("target_diverged", { branch: target });
-  if (run(top, ["cat-file", "-e", `${sha}^{commit}`], LOCAL_MS).status !== 0) throw new TrellisError("fetch_failed", { remote: "origin (git fetch it first)" });
-  return { commit: sha, source: "origin", url, why: null };
+  return { url, urlOk, rewritten };
 }
-function readVerified(top, ids) {
+function learnWouldRefuse(top, target, ms = LOCAL_MS) {
+  const facts = originFacts(top);
+  if (!facts.urlOk || facts.rewritten) return true;
+  if (run(top, ["for-each-ref", "--format=%(refname)", "refs/replace"], ms).stdout.toString("utf8").trim() !== "") return true;
+  const ahead = run(top, ["rev-list", "--count", `refs/remotes/origin/${target}..refs/heads/${target}`], ms);
+  return ahead.status === 0 && Number(ahead.stdout.toString("utf8").trim()) > 0;
+}
+function localTarget(top, target, ms = LOCAL_MS) {
+  if (!BRANCH2.test(target) || target.includes("..")) return null;
+  const r = run(top, ["rev-parse", "--verify", "--quiet", `refs/heads/${target}^{commit}`], ms);
+  const sha = r.status === 0 ? r.stdout.toString("utf8").trim() : "";
+  return SHA2.test(sha) ? sha : null;
+}
+function readVerified(top, ids, timeoutMs = LOCAL_MS * 3) {
   const out = new Map(ids.map((id) => [id, null]));
   if (ids.length === 0) return out;
-  const r = run(top, ["cat-file", "--batch"], LOCAL_MS * 3, Buffer.from(`${ids.join("\n")}
+  const r = run(top, ["cat-file", "--batch"], timeoutMs, Buffer.from(`${ids.join("\n")}
 `));
   const buf = r.stdout;
   let at = 0;
@@ -882,7 +1064,7 @@ function readVerified(top, ids) {
     const bytes = buf.subarray(at, at + size);
     at += size + 1;
     const id = head2[0];
-    const sum = (0, import_node_crypto2.createHash)(id.length === 64 ? "sha256" : "sha1").update(`${head2[1]} ${size}\0`).update(bytes).digest("hex");
+    const sum = (0, import_node_crypto3.createHash)(id.length === 64 ? "sha256" : "sha1").update(`${head2[1]} ${size}\0`).update(bytes).digest("hex");
     if (out.has(id) && sum === id) out.set(id, { type: head2[1], bytes });
   }
   return out;
@@ -903,12 +1085,12 @@ function treeEntries(bytes, idLen) {
   return out;
 }
 function listDecisionBlobs(top, commit, opts = {}) {
-  if (!SHA.test(commit)) return [];
+  if (!SHA2.test(commit)) return [];
   if (run(top, ["cat-file", "-e", commit], LOCAL_MS).status !== 0) return [];
-  const bad = (detail) => new TrellisError("objects_unsafe", { cause: "hash", detail });
+  const bad2 = (detail) => new TrellisError("objects_unsafe", { cause: "hash", detail });
   const common = run(top, ["rev-parse", "--git-common-dir"], LOCAL_MS).stdout.toString("utf8").trim();
   try {
-    (0, import_node_fs10.lstatSync)((0, import_node_path9.join)((0, import_node_path9.isAbsolute)(common) ? common : (0, import_node_path9.join)(top, common), "objects", "info", "alternates"));
+    (0, import_node_fs11.lstatSync)((0, import_node_path9.join)((0, import_node_path9.isAbsolute)(common) ? common : (0, import_node_path9.join)(top, common), "objects", "info", "alternates"));
     throw new TrellisError("objects_unsafe", { cause: "alternates", detail: "objects/info/alternates" });
   } catch (e) {
     if (e instanceof TrellisError) throw e;
@@ -916,12 +1098,12 @@ function listDecisionBlobs(top, commit, opts = {}) {
   const idLen = commit.length / 2;
   const tree = (id, what) => {
     const o = readVerified(top, [id]).get(id);
-    if (o?.type !== "tree") throw bad(what);
+    if (o?.type !== "tree") throw bad2(what);
     return o.bytes;
   };
   const c = readVerified(top, [commit]).get(commit);
   const rootId = c?.type === "commit" ? /^tree ([0-9a-f]+)\n/.exec(c.bytes.toString("latin1"))?.[1] : void 0;
-  if (rootId === void 0 || rootId.length !== commit.length) throw bad(`commit ${commit}`);
+  if (rootId === void 0 || rootId.length !== commit.length) throw bad2(`commit ${commit}`);
   const child = (entries, name) => entries.find((e) => e.name === name);
   const root = treeEntries(tree(rootId, "tree (root)"), idLen);
   const wf = child(root, "workflow");
@@ -933,12 +1115,12 @@ function listDecisionBlobs(top, commit, opts = {}) {
   let seen = 0;
   for (let depth = 0; level.length > 0 && depth < MAX_DEPTH; depth += 1) {
     seen += level.length;
-    if (seen > MAX_TREES) throw bad("too many trees");
+    if (seen > MAX_TREES) throw bad2("too many trees");
     const read = readVerified(top, level.map((t) => t.id));
     const next = [];
     for (const t of level) {
       const o = read.get(t.id);
-      if (o?.type !== "tree") throw bad(`tree ${t.path}`);
+      if (o?.type !== "tree") throw bad2(`tree ${t.path}`);
       for (const e of treeEntries(o.bytes, idLen)) {
         const path = `${t.path}/${e.name}`;
         if (e.mode === "40000") next.push({ path, id: e.id });
@@ -947,18 +1129,17 @@ function listDecisionBlobs(top, commit, opts = {}) {
     }
     level = next;
   }
-  const wantBlobs = opts.withBytes !== false;
   const exactIds = found.filter((f) => GLOB_SHAPE.test(f.path)).map((f) => f.id);
-  const blobs = wantBlobs ? readVerified(top, [...new Set(exactIds)]) : /* @__PURE__ */ new Map();
+  const late = opts.deadline !== void 0 && Date.now() >= opts.deadline;
+  const blobs = !late ? readVerified(top, [...new Set(exactIds)], opts.deadline === void 0 ? void 0 : Math.max(1, opts.deadline - Date.now())) : /* @__PURE__ */ new Map();
   const out = [];
   const none = Buffer.alloc(0);
   for (const f of found) {
     const exact = GLOB_SHAPE.test(f.path);
     const slug = exact ? f.path.split("/")[2] : safeName2(f.path);
-    const plain = exact && (f.mode === "100644" || f.mode === "100755") && SLUG3.test(slug);
-    const item = (bytes, invalid) => ({ slug: exact && !SLUG3.test(slug) ? safeName2(slug) : slug, path: f.path, blob: f.id, bytes, invalid });
+    const plain = exact && (f.mode === "100644" || f.mode === "100755") && SLUG4.test(slug);
+    const item = (bytes, invalid) => ({ slug: exact && !SLUG4.test(slug) ? safeName2(slug) : slug, path: f.path, blob: f.id, bytes, invalid });
     if (!plain) out.push(item(none, "not_plain_file"));
-    else if (!wantBlobs) out.push(item(none, null));
     else if (opts.deadline !== void 0 && Date.now() >= opts.deadline) break;
     else {
       const o = blobs.get(f.id);
@@ -967,29 +1148,48 @@ function listDecisionBlobs(top, commit, opts = {}) {
   }
   return out.sort((x, y) => x.slug < y.slug ? -1 : x.slug > y.slug ? 1 : 0);
 }
+function readTargetFile(top, commit, path, deadline) {
+  const ms = () => deadline === void 0 ? void 0 : Math.max(1, deadline - Date.now());
+  if (!SHA2.test(commit) || run(top, ["cat-file", "-e", commit], ms() ?? LOCAL_MS).status !== 0) return null;
+  const bad2 = (detail) => new TrellisError("objects_unsafe", { cause: "hash", detail });
+  const idLen = commit.length / 2;
+  const c = readVerified(top, [commit], ms()).get(commit);
+  const root = c?.type === "commit" ? /^tree ([0-9a-f]+)\n/.exec(c.bytes.toString("latin1"))?.[1] : void 0;
+  if (root === void 0 || root.length !== commit.length) throw bad2(`commit ${commit}`);
+  const names = path.split("/");
+  let id = root;
+  for (const [i, name] of names.entries()) {
+    const t = readVerified(top, [id], ms()).get(id);
+    if (t?.type !== "tree") throw bad2(`tree on the way to ${path}`);
+    const e = treeEntries(t.bytes, idLen).find((x) => x.name === name);
+    if (e === void 0) return null;
+    const last = i === names.length - 1;
+    if (last && e.mode !== "100644" && e.mode !== "100755") return { bytes: Buffer.alloc(0), blob: e.id, invalid: "not_plain_file" };
+    if (!last && e.mode !== "40000") return null;
+    id = e.id;
+  }
+  const blob = readVerified(top, [id], ms()).get(id);
+  return blob?.type === "blob" ? { bytes: blob.bytes, blob: id, invalid: null } : { bytes: Buffer.alloc(0), blob: id, invalid: "hash_mismatch" };
+}
 var savedPath = (home, repoId) => (0, import_node_path9.join)(home, ".trellis-flow", repoId, "spectex-saved.json");
 function readState(home, repoId) {
   const ids = (v) => new Set(Array.isArray(v) ? v.filter((x) => typeof x === "string") : []);
   try {
-    if (!(0, import_node_fs10.lstatSync)(savedPath(home, repoId)).isFile()) return { saved: /* @__PURE__ */ new Set(), rejected: /* @__PURE__ */ new Set() };
-    const j = JSON.parse((0, import_node_fs10.readFileSync)(savedPath(home, repoId), "utf8"));
-    return { saved: ids(j.blobs), rejected: ids(j.rejected) };
+    if (!(0, import_node_fs11.lstatSync)(savedPath(home, repoId)).isFile()) return { saved: /* @__PURE__ */ new Set(), rejected: /* @__PURE__ */ new Set(), lessons: /* @__PURE__ */ new Set(), lines: /* @__PURE__ */ new Set() };
+    const j = JSON.parse((0, import_node_fs11.readFileSync)(savedPath(home, repoId), "utf8"));
+    return { saved: ids(j.blobs), rejected: ids(j.rejected), lessons: ids(j.lessons), lines: ids(j.lines) };
   } catch {
-    return { saved: /* @__PURE__ */ new Set(), rejected: /* @__PURE__ */ new Set() };
+    return { saved: /* @__PURE__ */ new Set(), rejected: /* @__PURE__ */ new Set(), lessons: /* @__PURE__ */ new Set(), lines: /* @__PURE__ */ new Set() };
   }
-}
-function readSaved(home, repoId) {
-  const s = readState(home, repoId);
-  return /* @__PURE__ */ new Set([...s.saved, ...s.rejected]);
 }
 
 // src/installer/paths.ts
-var import_node_fs11 = require("node:fs");
-var import_node_os2 = require("node:os");
+var import_node_fs12 = require("node:fs");
+var import_node_os = require("node:os");
 function realHome(env2) {
-  const home = env2.HOME !== void 0 && env2.HOME.startsWith("/") ? env2.HOME : (0, import_node_os2.homedir)();
+  const home = env2.HOME !== void 0 && env2.HOME.startsWith("/") ? env2.HOME : (0, import_node_os.homedir)();
   try {
-    return (0, import_node_fs11.realpathSync)(home);
+    return (0, import_node_fs12.realpathSync)(home);
   } catch {
     return home;
   }
@@ -997,46 +1197,137 @@ function realHome(env2) {
 
 // src/hook/spectex.ts
 var BUDGET_MS = 1500;
-var NUMBER_KEYS = ["commits_behind", "behind", "stale_commits"];
-function behindOf(j, depth = 0) {
-  if (typeof j !== "object" || j === null || Array.isArray(j) || depth > 1) return null;
-  const o = j;
-  for (const k of NUMBER_KEYS) if (typeof o[k] === "number" && Number.isInteger(o[k]) && o[k] > 0) return o[k];
-  for (const v of Object.values(o)) {
-    const n = behindOf(v, depth + 1);
-    if (n !== null) return n;
+var METRICS = "workflow/metrics.jsonl";
+var SHA3 = /^[0-9a-f]{40,64}$/;
+var REJECTED_FIX = "fix each file to `YYYY-MM-DD · decision · why · file` in a new change";
+var ENTRY = /\/\.trellis-flow\/bin\/tr-learn$/;
+var BAKED = /^SPECTEX_DIR='\/[^']+'$/m;
+var MAX_SETTINGS_BYTES = 1 << 20;
+var MAX_WRAPPER_BYTES = 1 << 16;
+var MAX_CONFIG_BYTES = 256 * 1024;
+var ENABLED = /^spectex:[ \t]*\r?\n[ \t]+enabled:[ \t]*true[ \t]*\r?$/m;
+function spectexEnabled(top) {
+  try {
+    const file = (0, import_node_path10.join)(top, "workflow", "trellis.yaml");
+    return plainFile(file, MAX_CONFIG_BYTES) && ENABLED.test((0, import_node_fs13.readFileSync)(file, "utf8"));
+  } catch {
+    return false;
   }
-  return null;
+}
+function mainOf(top) {
+  try {
+    return checkoutOf(top).checkout;
+  } catch {
+    return top;
+  }
+}
+var plainFile = (file, max) => {
+  const st = (0, import_node_fs13.lstatSync)(file);
+  return st.isFile() && st.size <= max;
+};
+function learnWrapper(top, home) {
+  try {
+    const file = (0, import_node_path10.join)(top, ".claude", "settings.local.json");
+    if (!plainFile(file, MAX_SETTINGS_BYTES)) return "none";
+    const list = (JSON.parse((0, import_node_fs13.readFileSync)(file, "utf8")).sandbox ?? {}).excludedCommands;
+    if (!Array.isArray(list) || !list.some((c) => typeof c === "string" && ENTRY.test(c))) return "none";
+  } catch {
+    return "none";
+  }
+  try {
+    const wrapper = (0, import_node_path10.join)(home, ".trellis-flow", "bin", "tr-learn");
+    return plainFile(wrapper, MAX_WRAPPER_BYTES) && BAKED.test((0, import_node_fs13.readFileSync)(wrapper, "utf8")) ? "ready" : "unbaked";
+  } catch {
+    return "unbaked";
+  }
+}
+var REINSTALL = "tr-learn cannot find spectex: install it and run trellis init again";
+function behindRemedy(wrapper, version) {
+  if (!reindexSafe(version)) return `update spectex to ${SAFE_REINDEX_VERSION} or later (older ones cannot reindex safely), then a person runs, from the repo root: spectex reindex`;
+  if (wrapper === "ready") return "run tr-learn";
+  if (wrapper === "unbaked") return `${REINSTALL}, or a person runs, from the repo root: spectex reindex`;
+  return "a person runs, from the repo root: spectex reindex";
+}
+function indexBehind(top, commits, ms) {
+  if (commits.length === 0 || ms <= 0) return false;
+  try {
+    const r = run(top, ["rev-parse", "--verify", "-q", "HEAD^{commit}"], ms);
+    const head2 = r.status === 0 ? r.stdout.toString("utf8").trim() : "";
+    return SHA3.test(head2) && commits.every((c) => c !== head2);
+  } catch {
+    return false;
+  }
 }
 function spectexLines(top) {
   const start = Date.now();
   try {
     const home = realHome(process.env);
-    const run2 = makeRunSpectex({ PATH: process.env.PATH, HOME: home }, spectexRoots(top));
-    const st = run2(["--root", top, "status", "--json"], null, BUDGET_MS);
-    if (st.missing || st.timedOut) return [];
+    const roots = spectexRoots(top);
+    if (resolveBin("spectex", process.env.PATH, roots) === null) return [];
+    const run2 = makeRunSpectex({ PATH: process.env.PATH, HOME: home }, roots);
+    const main = mainOf(top);
+    const indexed = hasSpectexDir(main);
+    const st = indexed ? run2(["--root", main, "status", "--json"], null, BUDGET_MS) : null;
+    if (st !== null && (st.missing || st.timedOut)) return [];
     const lines = [];
-    let behind = null;
-    try {
-      behind = st.status === 0 ? behindOf(JSON.parse(st.stdout)) : null;
-    } catch {
-      behind = null;
-    }
-    if (behind !== null) lines.push(`spectex: index stale (${behind} commits behind)`);
+    const wrapper = learnWrapper(top, home);
+    const left = () => BUDGET_MS - (Date.now() - start);
+    const found = st !== null && st.status === 0 ? parseSpectexStatus(st.stdout) : null;
+    const own = main === top || (0, import_node_fs13.realpathSync)(top) === main;
+    if (!own) {
+    } else if (found?.sources === 0) lines.push("spectex: nothing is indexed yet (no sources), so its tools return nothing; a person runs, from the repo root: spectex init -y --no-scaffold && spectex reindex");
+    else if (found?.lastReindexFailed === true) lines.push("spectex: the last reindex failed; a person runs, from the repo root: spectex reindex");
+    else if (found !== null && found.neverIndexed.length > 0) lines.push(`spectex: never indexed: ${namesOf(found.neverIndexed)}; a person runs, from the repo root: spectex reindex`);
+    else if (found !== null && indexBehind(top, found.lastCommits, left())) lines.push(`spectex: index is behind HEAD; ${behindRemedy(wrapper, found.version)}`);
+    const wanted = indexed && spectexEnabled(top);
+    const canLearn = wanted && learnVersionOk(found?.version ?? null);
+    const oldSpectex = wanted && found?.version != null && !canLearn;
     try {
       const target = targetOf2(top, home);
-      const left = () => BUDGET_MS - (Date.now() - start);
-      const commit = target === null || left() <= 0 ? null : resolveTarget(top, target, null, left()).commit;
+      const refused = target === null || !wanted || left() <= 0 || learnWouldRefuse(top, target, left());
+      const commit = refused || target === null ? null : localTarget(top, target, left());
       if (commit !== null && left() > 0) {
-        const saved = readSaved(home, repoIdOf(top));
-        const unsaved = listDecisionBlobs(top, commit, { withBytes: false, deadline: start + BUDGET_MS }).filter((b) => b.invalid === null && !saved.has(b.blob)).length;
-        if (unsaved > 0 && left() > 0) lines.push(`spectex: ${unsaved} merged decisions not saved; a person runs, from outside this repository: ${personCmd("decisions", top)}`);
+        const state = readState(home, repoIdOf(top));
+        const saved = /* @__PURE__ */ new Set([...state.saved, ...state.rejected]);
+        const fresh = listDecisionBlobs(top, commit, { deadline: start + BUDGET_MS }).filter((b) => b.invalid === null && !saved.has(b.blob));
+        const rejected = [];
+        let unsaved = 0;
+        for (const b of fresh) {
+          try {
+            parseDecisions(b.bytes, b.slug);
+            unsaved += 1;
+          } catch (e) {
+            if (!(e instanceof TrellisError)) throw e;
+            rejected.push(`${b.slug} (${String(e.vars.cause)})`);
+          }
+        }
+        const lessons = countLessons(top, commit, state, start + BUDGET_MS);
+        const total = unsaved + lessons;
+        if (total > 0 && left() > 0) {
+          const what = `spectex: ${total} merged change logs not saved`;
+          if (!canLearn) {
+            if (oldSpectex) lines.push(`${what}; update spectex to ${LEARN_VERSION} or later (the save step needs it)`);
+          } else if (wrapper === "ready") lines.push(`${what}; run tr-learn`);
+          else if (wrapper === "unbaked") lines.push(`${what}; ${REINSTALL}, or a person runs, from outside this repository: ${personCmd("learn", top)}`);
+          else lines.push(`${what}; a person runs, from outside this repository: ${personCmd("learn", top)}`);
+        }
+        if (rejected.length > 0 && left() > 0) lines.push(`spectex: ${rejected.length} merged decision files rejected: ${namesOf(rejected)}; ${REJECTED_FIX}`);
       }
     } catch {
     }
     return lines;
   } catch {
     return [];
+  }
+}
+function countLessons(top, commit, state, deadline) {
+  try {
+    if (Date.now() >= deadline) return 0;
+    const file = readTargetFile(top, commit, METRICS, deadline);
+    if (file === null || file.invalid !== null) return 0;
+    return parseLessons(file.bytes).lessons.filter((l) => !state.lessons.has(l.key)).length;
+  } catch {
+    return 0;
   }
 }
 
@@ -1062,29 +1353,29 @@ function sessionStart(payload, gh = realGh) {
 }
 
 // src/cli/lang.ts
-var import_node_fs12 = require("node:fs");
-var import_node_path10 = require("node:path");
+var import_node_fs14 = require("node:fs");
+var import_node_path11 = require("node:path");
 var HEAD_BYTES = 64 * 1024;
 function head(path) {
   let fd;
   try {
-    fd = (0, import_node_fs12.openSync)(path, "r");
+    fd = (0, import_node_fs14.openSync)(path, "r");
   } catch {
     return null;
   }
   try {
     const buf = Buffer.alloc(HEAD_BYTES);
-    return buf.subarray(0, (0, import_node_fs12.readSync)(fd, buf, 0, HEAD_BYTES, 0)).toString("utf8");
+    return buf.subarray(0, (0, import_node_fs14.readSync)(fd, buf, 0, HEAD_BYTES, 0)).toString("utf8");
   } catch {
     return null;
   } finally {
-    (0, import_node_fs12.closeSync)(fd);
+    (0, import_node_fs14.closeSync)(fd);
   }
 }
 function repoYamlHead(cwd) {
-  for (let d = cwd; ; d = (0, import_node_path10.dirname)(d)) {
-    if ((0, import_node_fs12.existsSync)((0, import_node_path10.join)(d, ".git"))) return head((0, import_node_path10.join)(d, "workflow", "trellis.yaml"));
-    if ((0, import_node_path10.dirname)(d) === d) return null;
+  for (let d = cwd; ; d = (0, import_node_path11.dirname)(d)) {
+    if ((0, import_node_fs14.existsSync)((0, import_node_path11.join)(d, ".git"))) return head((0, import_node_path11.join)(d, "workflow", "trellis.yaml"));
+    if ((0, import_node_path11.dirname)(d) === d) return null;
   }
 }
 function repoLanguage(cwd) {
@@ -1101,8 +1392,8 @@ function detectLang(env2) {
 
 // src/hook/notify.ts
 var import_node_child_process5 = require("node:child_process");
-var import_node_fs13 = require("node:fs");
-var import_node_path11 = require("node:path");
+var import_node_fs15 = require("node:fs");
+var import_node_path12 = require("node:path");
 
 // src/core/notify.ts
 var NOTIFY_TYPES = ["permission_prompt", "worker_permission_prompt", "elicitation_dialog", "elicitation_url_dialog", "agent_needs_input"];
@@ -1123,7 +1414,7 @@ var OSC_TERMINALS = ["ghostty", "kitty", "iTerm.app", "WezTerm"];
 var realDeps = (env2) => ({
   platform: process.platform,
   env: env2,
-  exists: import_node_fs13.existsSync,
+  exists: import_node_fs15.existsSync,
   spawn: (cmd, args, opts) => (0, import_node_child_process5.spawnSync)(cmd, [...args], { timeout: opts.timeout, stdio: "ignore" })
 });
 function desktopEnabled(selfDir) {
@@ -1135,7 +1426,7 @@ function notify(payload, selfDir, deps = realDeps(process.env)) {
   const type = typeof payload === "object" && payload !== null ? payload.notification_type : void 0;
   if (typeof type !== "string" || !NOTIFY_TYPES.includes(type)) return { exit: 0 };
   if (!desktopEnabled(selfDir)) return { exit: 0 };
-  const repo = (0, import_node_path11.basename)((0, import_node_path11.resolve)(selfDir, "..", "..")).replace(/[^A-Za-z0-9_.-]/g, "").slice(0, NAME_MAX) || "repo";
+  const repo = (0, import_node_path12.basename)((0, import_node_path12.resolve)(selfDir, "..", "..")).replace(/[^A-Za-z0-9_.-]/g, "").slice(0, NAME_MAX) || "repo";
   const body = `${repo}: ${NOTIFY_TEXT[type][repoLanguage(selfDir) ?? detectLang(deps.env)]}`;
   if (deps.platform === "darwin" && !OSC_TERMINALS.includes(deps.env.TERM_PROGRAM ?? "") && deps.exists(OSASCRIPT)) {
     try {
@@ -1162,7 +1453,7 @@ var parse = (stdin) => {
     return null;
   }
 };
-var homeOf = (io) => typeof io.env.HOME === "string" && (0, import_node_path12.isAbsolute)(io.env.HOME) ? io.env.HOME : (0, import_node_os3.homedir)();
+var homeOf = (io) => typeof io.env.HOME === "string" && (0, import_node_path13.isAbsolute)(io.env.HOME) ? io.env.HOME : (0, import_node_os2.homedir)();
 function runHook(io) {
   const payload = io.event === "PreToolUse" ? parse(io.stdin) : io.event === "SessionStart" ? parse(io.stdin) : null;
   const dirs = workDirs(payload);
@@ -1196,7 +1487,7 @@ var code;
 try {
   let stdin = "";
   try {
-    stdin = (0, import_node_fs14.readFileSync)(0, "utf8");
+    stdin = (0, import_node_fs16.readFileSync)(0, "utf8");
   } catch {
   }
   const r = runHook({ event, stdin, env: process.env, selfDir: __dirname });

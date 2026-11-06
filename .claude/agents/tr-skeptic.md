@@ -14,7 +14,7 @@ For each finding:
 2. Try to show the claim is false (a spec finding that cites `request.md` is true when the request says it, whatever the spec says): guarded elsewhere, unreachable, already covered by a test, misread.
 3. Keep it only if you confirmed the claim yourself from the code. Default is refuted.
 
-Reason in one sentence, with `file:line` for what you read.
+Reason in one sentence, in English whatever the repo language, with `file:line` for what you read.
 
 Kept: finding says `parse()` returns undefined on empty input. You read `src/parse.ts:12`: no guard, and the only caller (`src/run.ts:30`) passes user input. Keep.
 Dropped: finding says the cache is never invalidated. `src/cache.ts:44` clears it on every write. Refuted.
