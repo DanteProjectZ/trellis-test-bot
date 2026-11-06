@@ -25,7 +25,7 @@ const WORD_CHAR = /[\p{L}\p{N}]/u;
 const FENCE_OPEN = /^ {0,3}(`{3,}|~{3,})/;
 const REFERENCE_DEFINITION = /^ {0,3}\[[^\]]+\]:\s*\S+/;
 
-const CODE_SPAN = /(?<!`)(`+)(?!`)[\s\S]*?(?<!`)\1(?!`)/g;
+const BACKTICK_RUN = /`+/g;
 const COMMENT_OPEN = '<!--';
 const COMMENT_CLOSE = '-->';
 
@@ -114,8 +114,41 @@ function stripComments(text) {
   return parts.join('');
 }
 
+// Replaces each code span with a space in one left-to-right pass. A span runs
+// from a backtick run to the next run of the same length. The next run of each
+// length is found in one right-to-left pass, so the scan stays linear however
+// many unclosed runs of different lengths the text holds.
+function stripCodeSpans(text) {
+  const runs = Array.from(text.matchAll(BACKTICK_RUN), (m) => ({
+    start: m.index,
+    end: m.index + m[0].length,
+  }));
+  const nextSame = new Array(runs.length).fill(-1);
+  const lastByLength = new Map();
+  for (let i = runs.length - 1; i >= 0; i--) {
+    const length = runs[i].end - runs[i].start;
+    nextSame[i] = lastByLength.get(length) ?? -1;
+    lastByLength.set(length, i);
+  }
+  const parts = [];
+  let from = 0;
+  let i = 0;
+  while (i < runs.length) {
+    const close = nextSame[i];
+    if (close === -1) {
+      i += 1;
+      continue;
+    }
+    parts.push(text.slice(from, runs[i].start), ' ');
+    from = runs[close].end;
+    i = close + 1;
+  }
+  parts.push(text.slice(from));
+  return parts.join('');
+}
+
 function stripInline(prose) {
-  const withoutComments = stripComments(prose.replace(CODE_SPAN, ' '));
+  const withoutComments = stripComments(stripCodeSpans(prose));
   return INLINE_REPLACEMENTS.reduce(
     (text, [pattern, replacement]) => text.replace(pattern, replacement),
     withoutComments,
