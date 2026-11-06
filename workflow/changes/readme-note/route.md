@@ -1,0 +1,2 @@
+route: quick
+tags: none
